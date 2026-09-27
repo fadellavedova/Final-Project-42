@@ -1,1 +1,10 @@
 .vscode
+./Object/*.o 
+./42 
+./AcApp 
+./Kit/42kit.so 
+./InOut/*.42 
+./Standalone/*.42 
+./Demo/*.42 
+./Rx/*.42 
+./Tx/*.42

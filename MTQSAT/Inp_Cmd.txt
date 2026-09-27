@@ -1,4 +1,5 @@
 <<<<<<<<<<<<<<<<<  42:  Command Script File  >>>>>>>>>>>>>>>>>
+0.0 SC[0] MTQ Mode = SUN_POINTING
 0.0 SC[0] qrn = [0.0  0.0  0.0  1.0]
 50000.0 SC[0] qrn = [0.0  1.0  0.0  0.0]
 EOF
@@ -53,6 +54,8 @@ EOF
 # FSW-related commands
 %lf SC[%ld] FswTag = %s
    # %s is PASSIVE_FSW, PROTOTYPE_FSW, etc.
+%lf SC[%ld] MTQ Mode = %s
+   # %s is DETUMBLE, SUN_POINTING, or NADIR_POINTING
 %lf SC[%ld] qrn = [%lf %lf %lf %lf]
 %lf SC[%ld] qrl = [%lf %lf %lf %lf]
 %lf SC[%ld] Cmd Angles = [%lf %lf %lf] deg, Seq = %ld wrt %c Frame

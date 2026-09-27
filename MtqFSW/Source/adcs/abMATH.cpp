@@ -5,6 +5,9 @@
 #include <math.h>
 #include "abMATH.h"
 #include "stdio.h"
+#include <string.h>
+
+static const double pi = 3.14159265;
 
 // *****************************************************************************
 // * Función ker para el cálculo del núcleo de M de 3x4 y rango completo
@@ -752,4 +755,164 @@ void pVec(double v1[], double v2[], double v3[])
   v3[1] = v1[2]*v2[3] - v1[3]*v2[2];
   v3[2] = v1[3]*v2[1] - v1[1]*v2[3];
   v3[3] = v1[1]*v2[2] - v1[2]*v2[1];
+}
+
+void CrossProduct(const double left[3], const double right[3],
+   double result[3])
+{
+   result[0] = left[1]*right[2] - left[2]*right[1];
+   result[1] = left[2]*right[0] - left[0]*right[2];
+   result[2] = left[0]*right[1] - left[1]*right[0];
+}
+
+void Skew(const double vector[3], double matrix[3][3])
+{
+   matrix[0][0] = 0.0;
+   matrix[0][1] = -vector[2];
+   matrix[0][2] = vector[1];
+   matrix[1][0] = vector[2];
+   matrix[1][1] = 0.0;
+   matrix[1][2] = -vector[0];
+   matrix[2][0] = -vector[1];
+   matrix[2][1] = vector[0];
+   matrix[2][2] = 0.0;
+}
+
+void Matrix3Vector(const double matrix[3][3], const double vector[3],
+   double result[3])
+{
+   long row;
+   long column;
+
+   for (row = 0; row < 3; row++) {
+      result[row] = 0.0;
+      for (column = 0; column < 3; column++) {
+         result[row] += matrix[row][column]*vector[column];
+      }
+   }
+}
+
+void Matrix3Multiply(const double left[3][3],
+   const double right[3][3], double result[3][3])
+{
+   long row;
+   long column;
+   long inner;
+
+   for (row = 0; row < 3; row++) {
+      for (column = 0; column < 3; column++) {
+         result[row][column] = 0.0;
+         for (inner = 0; inner < 3; inner++) {
+            result[row][column] += left[row][inner]*right[inner][column];
+         }
+      }
+   }
+}
+
+int InvertMatrix3(const double matrix[3][3], double inverse[3][3])
+{
+   double determinant =
+      matrix[0][0]*(matrix[1][1]*matrix[2][2] - matrix[1][2]*matrix[2][1])
+      - matrix[0][1]*(matrix[1][0]*matrix[2][2] - matrix[1][2]*matrix[2][0])
+      + matrix[0][2]*(matrix[1][0]*matrix[2][1] - matrix[1][1]*matrix[2][0]);
+
+   if (fabs(determinant) < 1.0E-30) return 0;
+
+   inverse[0][0] = (matrix[1][1]*matrix[2][2] - matrix[1][2]*matrix[2][1])/determinant;
+   inverse[0][1] = (matrix[0][2]*matrix[2][1] - matrix[0][1]*matrix[2][2])/determinant;
+   inverse[0][2] = (matrix[0][1]*matrix[1][2] - matrix[0][2]*matrix[1][1])/determinant;
+   inverse[1][0] = (matrix[1][2]*matrix[2][0] - matrix[1][0]*matrix[2][2])/determinant;
+   inverse[1][1] = (matrix[0][0]*matrix[2][2] - matrix[0][2]*matrix[2][0])/determinant;
+   inverse[1][2] = (matrix[0][2]*matrix[1][0] - matrix[0][0]*matrix[1][2])/determinant;
+   inverse[2][0] = (matrix[1][0]*matrix[2][1] - matrix[1][1]*matrix[2][0])/determinant;
+   inverse[2][1] = (matrix[0][1]*matrix[2][0] - matrix[0][0]*matrix[2][1])/determinant;
+   inverse[2][2] = (matrix[0][0]*matrix[1][1] - matrix[0][1]*matrix[1][0])/determinant;
+   return 1;
+}
+
+void Matrix6Multiply(const double left[6][6],
+   const double right[6][6], double result[6][6])
+{
+   double temporary[6][6] = {{0.0}};
+   long row;
+   long column;
+   long inner;
+
+   for (row = 0; row < 6; row++) {
+      for (column = 0; column < 6; column++) {
+         for (inner = 0; inner < 6; inner++) {
+            temporary[row][column] += left[row][inner]*right[inner][column];
+         }
+      }
+   }
+   memcpy(result,temporary,sizeof(temporary));
+}
+
+void Matrix6MultiplyTranspose(const double left[6][6],
+   const double right[6][6], double result[6][6])
+{
+   long row;
+   long column;
+   long inner;
+
+   for (row = 0; row < 6; row++) {
+      for (column = 0; column < 6; column++) {
+         result[row][column] = 0.0;
+         for (inner = 0; inner < 6; inner++) {
+            result[row][column] += left[row][inner]*right[column][inner];
+         }
+      }
+   }
+}
+
+void MatrixExponential6(const double matrix[6][6],
+   double exponential[6][6])
+{
+   double scaled[6][6];
+   double term[6][6] = {{0.0}};
+   double product[6][6];
+   double norm = 0.0;
+   double divisor = 1.0;
+   long scaling = 0;
+   long row;
+   long column;
+   long order;
+
+   for (row = 0; row < 6; row++) {
+      double rowSum = 0.0;
+      for (column = 0; column < 6; column++) rowSum += fabs(matrix[row][column]);
+      if (rowSum > norm) norm = rowSum;
+   }
+   while (norm/divisor > 0.5) {
+      divisor *= 2.0;
+      scaling++;
+   }
+
+   for (row = 0; row < 6; row++) {
+      for (column = 0; column < 6; column++) {
+         scaled[row][column] = matrix[row][column]/divisor;
+         exponential[row][column] = row == column ? 1.0 : 0.0;
+         term[row][column] = row == column ? 1.0 : 0.0;
+      }
+   }
+
+   for (order = 1; order <= 30; order++) {
+      double largestTerm = 0.0;
+      Matrix6Multiply(term,scaled,product);
+      for (row = 0; row < 6; row++) {
+         for (column = 0; column < 6; column++) {
+            term[row][column] = product[row][column]/(double) order;
+            exponential[row][column] += term[row][column];
+            if (fabs(term[row][column]) > largestTerm) {
+               largestTerm = fabs(term[row][column]);
+            }
+         }
+      }
+      if (largestTerm < 1.0E-15) break;
+   }
+
+   while (scaling-- > 0) {
+      Matrix6Multiply(exponential,exponential,product);
+      memcpy(exponential,product,sizeof(product));
+   }
 }

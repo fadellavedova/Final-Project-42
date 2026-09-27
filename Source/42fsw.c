@@ -74,6 +74,22 @@ long FswCmdInterpreter(char CmdLine[512],double *CmdTime)
          SC[Isc].FswTag = DecodeString(response);
       }
 
+      else if (sscanf(CmdLine,"%lf SC[%ld] MTQ Mode = %s",
+         CmdTime,&Isc,response) == 3) {
+         if (!strcmp(response,"DETUMBLE")) {
+            SC[Isc].AC.ReqMode = MTQ_MODE_DETUMBLE;
+            NewCmdProcessed = TRUE;
+         }
+         else if (!strcmp(response,"SUN_POINTING")) {
+            SC[Isc].AC.ReqMode = MTQ_MODE_SUN_POINTING;
+            NewCmdProcessed = TRUE;
+         }
+         else if (!strcmp(response,"NADIR_POINTING")) {
+            SC[Isc].AC.ReqMode = MTQ_MODE_NADIR_POINTING;
+            NewCmdProcessed = TRUE;
+         }
+      }
+
       else if (sscanf(CmdLine,"%lf SC[%ld] Cmd Angles = [%lf %lf %lf] deg, Seq = %ld wrt %c Frame",
          CmdTime,&Isc,&Ang[0],&Ang[1],&Ang[2],&RotSeq,&FrameChar) == 7) {
          NewCmdProcessed = TRUE;
@@ -977,6 +993,11 @@ void InitAC(struct SCType *S)
       AC->ThrCtrl.Init = 1;
       AC->CfsCtrl.Init = 1;
       AC->ThrSteerCtrl.Init = 1;
+
+      if (S->FswTag == MTQ_FSW) {
+         AC->Mode = MTQ_MODE_DETUMBLE;
+         AC->ReqMode = MTQ_MODE_SUN_POINTING;
+      }
       
       AC->PrototypeCtrl.wc = 0.05*TwoPi;
       AC->PrototypeCtrl.amax = 0.01;
@@ -1443,6 +1464,7 @@ void MtqFSW(struct AcType *AC)
       GyroProcessing2(AC);
       MagnetometerProcessing2(AC);
       CssProcessing2(AC);
+      HorizonProcessing2(AC),
 
       adcsMagSunUBA(AC);
 

@@ -241,7 +241,7 @@ ACKITOBJ = $(OBJ)dcmkit.o $(OBJ)mathkit.o $(OBJ)fswkit.o $(OBJ)iokit.o $(OBJ)tim
 ACIPCOBJ = $(OBJ)AppReadFromFile.o \
 $(OBJ)AppWriteToSocket.o $(OBJ)AppReadFromSocket.o $(OBJ)AppWriteToFile.o
 
-TESTOBJ = $(OBJ)magsun.o
+TESTOBJ = $(OBJ)magsun.o $(OBJ)ekf_rmm.o $(OBJ)abMATH.o
 
 #ANSIFLAGS = -Wstrict-prototypes -pedantic -ansi -Werror
 ANSIFLAGS =
@@ -429,6 +429,12 @@ $(OBJ)42fssalbedo.o         : $(SRC)42fssalbedo.c
 
 $(OBJ)magsun.o : $(TESTSRC)adcs/magsun.c $(TESTINC)adcs/magsun.h $(INC)42.h
 	$(CC) $(CFLAGS) -c $(TESTSRC)adcs/magsun.c -o $@
+
+$(OBJ)ekf_rmm.o : $(TESTSRC)adcs/ekf_rmm.c $(TESTINC)adcs/ekf_rmm.h $(TESTSRC)adcs/abMATH.h
+	$(CC) $(CFLAGS) -c $(TESTSRC)adcs/ekf_rmm.c -o $@
+
+$(OBJ)abMATH.o : $(TESTSRC)adcs/abMATH.cpp $(TESTSRC)adcs/abMATH.h
+	$(CXX) $(CFLAGS) -c $(TESTSRC)adcs/abMATH.cpp -o $@
 
 ########################  Miscellaneous Rules  ############################
 clean :

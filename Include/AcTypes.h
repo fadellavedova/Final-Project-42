@@ -334,6 +334,10 @@ struct AcCfsCtrlType {
    long Init;
    double therr[3];
    double werr[3];
+   long RmmEkfInit;
+   double RmmState[6];
+   double RmmCov[6][6];
+   double RmmQ[6][6];
 };
 
 struct AcThrSteerCtrlType {

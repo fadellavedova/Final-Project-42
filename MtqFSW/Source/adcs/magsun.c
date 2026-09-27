@@ -1,4 +1,5 @@
-#include "42.h"
+#include "adcs/magsun.h"
+#include "adcs/ekf_rmm.h"
 #include <math.h>
 #include "abMATH.h"
 
@@ -18,8 +19,7 @@ const double EARTH_J4 = -1.655970e-6;
 
 double earthradius = RE;
 
-
-  /* ********************************************************************
+/* ********************************************************************
    UBA
 /* ********************************************************************
 
@@ -33,6 +33,17 @@ double earthradius = RE;
       TAM, Gyros, CSS, Horizon Sensor and MTQ
   ********************************************************************/
   // double framefactor=-1;
+/* En algún lado tenemos que implementar el ekf_rmm.h
+      en matlabtr está:
+        phik = 0;
+        rmm_cov_diag = [0;0;0];
+        if RMM_ESTIMATE == 1
+            %[x_pred, sigma, phikm1, Q] = ekf_rmm(x_pred, (mag_mom - mom_res), iner, earth_field_b, sigma, dw, Q, Q_min, alpha, R, tstep);
+            [ekf_rmm, phik] = update(ekf_rmm, mag_mom - mom_res, earth_field_b, dw);
+            [x_pred, sigma, Q] = get_estimates(ekf_rmm);
+            rmm_cov_diag = [sigma(4,4); sigma(5,5); sigma(6,6)];
+        end
+*/
   int adcsMagSunUBA(struct AcType *AC)
   {
   

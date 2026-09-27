@@ -1,3 +1,10 @@
+#ifndef MTQFSW_ADCS_ABMATH_H
+#define MTQFSW_ADCS_ABMATH_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 double det4(double M[4][4]);
 double det5(double M[5][5]);
 void ker45(double X[4][5],double wx[5]);
@@ -21,3 +28,17 @@ void q_a_rad(double q0, double q1, double q2, double q3, double *protacion, doub
 void rad_a_q(double *pq0, double *pq1, double *pq2, double *pq3, double rotacion, double ascension, double declinacion);
 void getCd(double vpoint[4], double Cd[4][4]);
 void pVec(double v1[], double v2[], double v3[]);
+void CrossProduct(const double left[3], const double right[3], double result[3]);
+void Skew(const double vector[3], double matrix[3][3]);
+void Matrix3Vector(const double matrix[3][3], const double vector[3], double result[3]);
+void Matrix3Multiply(const double left[3][3], const double right[3][3], double result[3][3]);
+int InvertMatrix3(const double matrix[3][3], double inverse[3][3]);
+void Matrix6Multiply(const double left[6][6], const double right[6][6], double result[6][6]);
+void Matrix6MultiplyTranspose(const double left[6][6], const double right[6][6], double result[6][6]);
+void MatrixExponential6(const double matrix[6][6], double exponential[6][6]);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif

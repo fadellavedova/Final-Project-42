@@ -249,12 +249,22 @@ double earthradius = RE;
    if (first) {
       first=0;
       FilePtr = fopen("MTQSAT/mission.m", "w");
-      fprintf(FilePtr, "vm=[%f %f %f %f %f %f %f %f %f %f %f %f %f %f];\n", qe[0], qe[1], qe[2], qe[3], AC->Tcmd[iwheel], GAV[0][0], GAV[0][1], GAV[0][2], GAV[1][0], GAV[1][1], GAV[1][2], GAV[2][0], GAV[2][1], GAV[2][2]);
-      fclose(FilePtr);
+      if (FilePtr != NULL) {
+         fprintf(FilePtr, "vm=[%f %f %f %f %f %f %f %f %f %f %f %f %f %f];\n", qe[0], qe[1], qe[2], qe[3], AC->Tcmd[iwheel], GAV[0][0], GAV[0][1], GAV[0][2], GAV[1][0], GAV[1][1], GAV[1][2], GAV[2][0], GAV[2][1], GAV[2][2]);
+         fflush(FilePtr);
+         fclose(FilePtr);
+         printf("DEBUG: Successfully wrote to MTQSAT/mission.m\n");
+      } else {
+         printf("ERROR: Could not open MTQSAT/mission.m for writing (errno: %d)\n", errno);
+         perror("fopen");
+      }
    } else {
       FilePtr = fopen("MTQSAT/mission.m", "a");
-      fprintf(FilePtr, "vm=[vm;%f %f %f %f %f %f %f %f %f %f %f %f %f %f];\n", qe[0], qe[1], qe[2], qe[3], AC->Tcmd[iwheel], GAV[0][0], GAV[0][1], GAV[0][2], GAV[1][0], GAV[1][1], GAV[1][2], GAV[2][0], GAV[2][1], GAV[2][2]);
-      fclose(FilePtr);
+      if (FilePtr != NULL) {
+         fprintf(FilePtr, "vm=[vm;%f %f %f %f %f %f %f %f %f %f %f %f %f %f];\n", qe[0], qe[1], qe[2], qe[3], AC->Tcmd[iwheel], GAV[0][0], GAV[0][1], GAV[0][2], GAV[1][0], GAV[1][1], GAV[1][2], GAV[2][0], GAV[2][1], GAV[2][2]);
+         fflush(FilePtr);
+         fclose(FilePtr);
+      }
    }
 
    return retval;

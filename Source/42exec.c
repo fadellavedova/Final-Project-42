@@ -15,6 +15,7 @@
 #define DECLARE_GLOBALS
 #include "42.h"
 #undef DECLARE_GLOBALS
+#include <stdio.h>
 
 /* #ifdef __cplusplus
 ** namespace _42 {
@@ -308,7 +309,6 @@ long SimStep(void)
       struct SCType *S;
       long SimComplete;
       double TotalRunTime;
-
       if (First) {
          First = 0;
          SimTime = 0.0;
@@ -392,8 +392,8 @@ int exec(int argc,char **argv)
       TriangleTime = 0.0;
       SubstTime = 0.0;
       SolveTime = 0.0;
-
-      InitSim(argc,argv);
+      
+      InitSim(argc,argv);          
       CmdInterpreter();
       InitInterProcessComm();
       #ifdef _ENABLE_GUI_

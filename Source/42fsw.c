@@ -14,6 +14,7 @@
 
 #include "42.h"
 #include "mtqfsw.h"
+#include <stdio.h>
 
 #ifdef _ENABLE_RBT_
    void RbtFSW(struct SCType *S);
@@ -1343,7 +1344,6 @@ void FssProcessing2(struct AcType *AC)
       }
 }
 /**********************************************************************/
-/* TODO: Weight measurements to reduce impact of "weak" axis */
 void StarTrackerProcessing2(struct AcType *AC)
 {
       long Ist,i;
@@ -1644,7 +1644,8 @@ void ThreeAxisFSW(struct SCType *S)
             AC->G[0].MaxAngRate[j] = 0.2*D2R;
             AC->G[0].MaxTrq[j] = 100.0;
             FindPDGains(S->B[1].I[1][1],0.02*TwoPi,1.0,
-               &AC->G[0].AngRateGain[j],&AC->G[0].AngGain[j]);
+               &AC->G[0].AngRateGain[j],
+               &AC->G[0].AngGain[j]);
          }
 
          for(i=0;i<3;i++) {
@@ -2096,7 +2097,7 @@ void FlightSoftWare(struct SCType *S)
                PrototypeFSW(S);
                break;
             case MTQ_FSW:
-               MtqFSW(S);
+               MtqFSW(&S->AC);
                break;
             case AD_HOC_FSW:
                AdHocFSW(S);

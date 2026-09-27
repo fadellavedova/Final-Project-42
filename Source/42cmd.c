@@ -201,8 +201,10 @@ void CmdInterpreter(void)
          #endif
 
          /* FSW Commands */
-         else if (FswCmdInterpreter(CmdLine,&CmdTime))
+
+         else if (FswCmdInterpreter(CmdLine,&CmdTime)) {
             NewCmdProcessed = TRUE;
+         }
 
          /* If any match found, get next command */
          if (NewCmdProcessed) {

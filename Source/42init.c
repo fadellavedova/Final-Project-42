@@ -145,7 +145,7 @@ long DecodeString(char *s)
       else if (!strcmp(s,"RBT_FSW")) return RBT_FSW;
       else if (!strcmp(s,"SENYT_FSW")) return SENYT_FSW;
       else if (!strcmp(s,"TEST_FSW")) return TEST_FSW;
-      else if (!strcmp(s,"MTQ_FSW")) return TEST_FSW;
+      else if (!strcmp(s,"MTQ_FSW")) return MTQ_FSW;
 
       else if (!strcmp(s,"PHOBOS")) return PHOBOS;
       else if (!strcmp(s,"DEIMOS")) return DEIMOS;

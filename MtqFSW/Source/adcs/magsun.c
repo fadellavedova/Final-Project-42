@@ -20,6 +20,30 @@ const double EARTH_J4 = -1.655970e-6;
 
 double earthradius = RE;
 
+double Norm3Vector(double *v)
+{
+   // Placeholder for actual implementation
+   // The actual normalization logic would go here, modifying the input vector to have a unit length.
+}
+
+void CrossProduct(double *a, double *b, double *c)
+{
+   // Placeholder for actual implementation
+   // The actual cross product logic would go here.
+}
+
+void Matrix3Vector(double M[3][3], double v[3], double result[3])
+{
+   // Placeholder for actual implementation
+   // The actual matrix-vector multiplication logic would go here.
+}
+
+double (*InvertMatrix3(double M[3][3]))[3]
+{
+   // Placeholder for actual implementation
+   // The actual matrix inversion logic would go here.
+}
+
 
 /* ********************************************************************
    UBA
@@ -31,7 +55,7 @@ double earthradius = RE;
    CSS, Mag, Gyros. HS
 ********************************************************************/
 
-void cssProcessing(struct AcType *AC, AcConfig_t *config)
+void cssProcessing(struct AcType *AC)
 {
    /* Get ADCS configuration */
    AcConfig_t *config = GetAcConfig();
@@ -92,13 +116,28 @@ void cssProcessing(struct AcType *AC, AcConfig_t *config)
    }
 }
 
+void esProcessing(struct AcType *AC)
+{
+   struct AcEarthSensorType *ES = &AC->ES;
+   double Roll, Pitch;
 
+   if (AC->Nst == 0) {
+      /* AC->qbn populated by true S->B[0].qn in 42sensors.c */
+      /* AC->CBN populated by true S->B[0].CBN in 42sensors.c */
+      /* AC->CLN populated by true S->B[0].CLN in 42sensors.c */
+   }
+   else {
+      /* AC->qbn populated by true S->B[0].qn in 42sensors.c */
+      /* AC->CBN populated by true S->B[0].CBN in 42sensors.c */
+      /* AC->CLN populated by true S->B[0].CLN in 42sensors.c */
+   }
 
+   Roll = atan2(AC->CLN[2][1],AC->CLN[2][2]);
+   Pitch = -asin(AC->CLN[2][0]);
 
-
-
-
-
+   ES->Roll = Roll;
+   ES->Pitch = Pitch;
+}
 
 
 /* ********************************************************************

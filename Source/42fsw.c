@@ -1444,7 +1444,7 @@ void MtqFSW(struct AcType *AC)
       MagnetometerProcessing2(AC);
       CssProcessing2(AC);
 
-      adcsMagSunUBA(AC);
+      adcsUBA(AC);
 
       WheelProcessing2(AC);
       MtbProcessing2(AC);

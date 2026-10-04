@@ -1,4 +1,4 @@
-#include "state_machine.h"
+#include "adcs/state_machine.h"
 #define MAX_MODE_ENTRIES 64
 
 AcMode_t mode[MAX_MODE_ENTRIES];

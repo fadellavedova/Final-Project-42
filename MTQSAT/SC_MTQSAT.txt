@@ -1,8 +1,8 @@
-    <<<<<<<<<<<<<<<<<  42: Spacecraft Description File   >>>>>>>>>>>>>>>>>
+<<<<<<<<<<<<<<<<<  42: Spacecraft Description File   >>>>>>>>>>>>>>>>>
 Small Cubesat                 !  Description
 "UBA"                         !  Label
 GenScSpriteAlpha.ppm          !  Sprite File Name
-MTQ_FSW                       !  Flight Software Identifier
+TEST_FSW                      !  Flight Software Identifier
 0.5                           !  FSW Sample Time, sec
 ************************* Orbit Parameters ****************************
 ENCKE                         !  Orbit Prop FIXED, EULER_HILL, or ENCKE
@@ -251,8 +251,11 @@ X_AXIS                      ! Boresight Axis X_AXIS, Y_AXIS, or Z_AXIS
 3600.0   3600.0             ! H, V FOV Size, arcsec
 2.0                         ! Noise Equivalent Angle, arcsec RMS
 60.0                        ! Detector Scale, arcsec/pixel
-0  0                        ! Body, Node
-0.0  0.0  0.0  321          ! FOV Frame (Fr) Angles (deg), Seq wrt R frame
-0.00  0.0                   ! Guide Star H, V (deg) in FOV Frame
-NONE                        ! Optics Input File Name
-NONE                        ! PSF Image File Name
+************************* Earth Horizon Sensor ***************************
+1                           ! Number of Earth Horizon Sensors
+========================= Earth Horizon Sensor 0 =========================
+2                           ! Sample Time, sec
+30                          ! Mount Angle Around X+
+45                          ! FOV Half Angle
+0                           ! Body
+0                           ! Node

@@ -15,7 +15,7 @@ int ExitNominal(struct AcType *AC, AcConfig_t *config);
 void InitAcMode(struct AcType *AC);
 
 AcMode_t GetCurrentMode(struct AcType *AC);
-void UpdateMode(struct AcType *AC, AcMode_t newMode);
+void UpdateMode(struct AcType *AC, AcConfig_t *config);
 
 
 #endif 

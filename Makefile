@@ -241,7 +241,7 @@ ACKITOBJ = $(OBJ)dcmkit.o $(OBJ)mathkit.o $(OBJ)fswkit.o $(OBJ)iokit.o $(OBJ)tim
 ACIPCOBJ = $(OBJ)AppReadFromFile.o \
 $(OBJ)AppWriteToSocket.o $(OBJ)AppReadFromSocket.o $(OBJ)AppWriteToFile.o
 
-TESTOBJ = $(OBJ)magsun.o $(OBJ)ekf_rmm.o $(OBJ)abMATH.o
+TESTOBJ = $(OBJ)magsun.o $(OBJ)config.o $(OBJ)state_machine.o $(OBJ)ekf_rmm.o $(OBJ)abMATH.o
 
 #ANSIFLAGS = -Wstrict-prototypes -pedantic -ansi -Werror
 ANSIFLAGS =
@@ -435,6 +435,11 @@ $(OBJ)ekf_rmm.o : $(TESTSRC)adcs/ekf_rmm.c $(TESTINC)adcs/ekf_rmm.h $(TESTSRC)ad
 
 $(OBJ)abMATH.o : $(TESTSRC)adcs/abMATH.cpp $(TESTSRC)adcs/abMATH.h
 	$(CXX) $(CFLAGS) -c $(TESTSRC)adcs/abMATH.cpp -o $@
+$(OBJ)config.o : $(TESTSRC)adcs/config.c $(TESTINC)adcs/config.h
+	$(CC) $(CFLAGS) -c $(TESTSRC)adcs/config.c -o $@
+
+$(OBJ)state_machine.o : $(TESTSRC)adcs/state_machine.c $(TESTINC)adcs/state_machine.h $(TESTINC)adcs/config.h $(INC)42.h
+	$(CC) $(CFLAGS) -c $(TESTSRC)adcs/state_machine.c -o $@
 
 ########################  Miscellaneous Rules  ############################
 clean :

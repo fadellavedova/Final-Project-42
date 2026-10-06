@@ -1466,7 +1466,7 @@ void MtqFSW(struct AcType *AC)
       CssProcessing2(AC);
       HorizonProcessing2(AC),
 
-      adcsMagSunUBA(AC);
+      adcsUBA(AC);
 
       WheelProcessing2(AC);
       MtbProcessing2(AC);

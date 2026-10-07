@@ -7,6 +7,7 @@ extern "C" {
 
 double det4(double M[4][4]);
 double det5(double M[5][5]);
+double det4(double M[4][4]);
 void ker45(double X[4][5],double wx[5]);
 void ker56(double X[5][6],double wx[6]);
 void ker67(double M[6][7],double kerM[7]);
@@ -33,6 +34,7 @@ void Skew(const double vector[3], double matrix[3][3]);
 void Matrix3Vector(const double matrix[3][3], const double vector[3], double result[3]);
 void Matrix3Multiply(const double left[3][3], const double right[3][3], double result[3][3]);
 int InvertMatrix3(const double matrix[3][3], double inverse[3][3]);
+double Norm3Vector(const double vector[3]);
 void Matrix6Multiply(const double left[6][6], const double right[6][6], double result[6][6]);
 void Matrix6MultiplyTranspose(const double left[6][6], const double right[6][6], double result[6][6]);
 void MatrixExponential6(const double matrix[6][6], double exponential[6][6]);

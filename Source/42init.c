@@ -1890,7 +1890,8 @@ void InitSpacecraft(struct SCType *S)
       char junk[120],newline,response[120];
       char response1[120],response2[120],response3[120];
       double CBL[3][3],CBF[3][3];
-      long i,j,k,Ia,Ib,Ig,Iw,Im,It,Bi,Bo,Ic,Ie,Ist,Ifss,Ifgs;
+      long i,j,k,Ia,Ib,Ig,Iw,Im,It,Bi,Bo,Ic,Ie,Ist,Ifss,Ifgs,HasEhsSection;
+      long FgsSectionPos;
       char RateFrame,AttFrame,AttParm;
       double wlnb[3];
       double wbn[3],CBN[3][3],qbn[4];
@@ -2656,7 +2657,13 @@ void InitSpacecraft(struct SCType *S)
       fscanf(infile,"%ld %[^\n] %[\n]",&S->Nfgs,junk,&newline);
       S->Fgs = (struct FgsType *) calloc(S->Nfgs,sizeof(struct FgsType));
       if (S->Nfgs == 0) {
-         for(i=0;i<7;i++) fscanf(infile,"%[^\n] %[\n]",junk,&newline);
+         while ((FgsSectionPos = ftell(infile)) >= 0
+            && fgets(junk,sizeof(junk),infile) != NULL) {
+            if (junk[0] == '*') {
+               fseek(infile,FgsSectionPos,SEEK_SET);
+               break;
+            }
+         }
       }
       else {
          for(Ifgs=0;Ifgs<S->Nfgs;Ifgs++) {
@@ -2716,16 +2723,21 @@ void InitSpacecraft(struct SCType *S)
       }
 
 /* .. Earth Horizon Sensors */
-      fscanf(infile,"%[^\n] %[\n]",junk,&newline);
-      if (junk[0] != '*') {
-         printf("Error:  Malformed SC input file before Earth Horizon Sensor section\n.");
-         exit(1);
+      S->Nehs = 0;
+      HasEhsSection = fscanf(infile," %119[^\n]",junk) == 1;
+      if (HasEhsSection) {
+         if (junk[0] != '*') {
+            printf("Error:  Malformed SC input file before Earth Horizon Sensor section\n.");
+            exit(1);
+         }
+         fscanf(infile,"%ld %[^\n] %[\n]",&S->Nehs,junk,&newline);
       }
-      fscanf(infile,"%ld %[^\n] %[\n]",&S->Nehs,junk,&newline);
       S->EHS = (struct EhsType *) calloc(S->Nehs,sizeof(struct EhsType));
       if (S->Nehs == 0) {
          /* Skip 6 lines for each uninstantiated sensor to maintain file alignment */
-         for(i=0;i<6;i++) fscanf(infile,"%[^\n] %[\n]",junk,&newline);
+         if (HasEhsSection) {
+            for(i=0;i<6;i++) fscanf(infile,"%[^\n] %[\n]",junk,&newline);
+         }
       }
       else {
          for(Ie=0;Ie < S->Nehs;Ie++) {

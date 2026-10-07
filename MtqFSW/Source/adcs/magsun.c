@@ -21,31 +21,6 @@ const double EARTH_J4 = -1.655970e-6;
 
 double earthradius = RE;
 
-double Norm3Vector(double *v)
-{
-   // Placeholder for actual implementation
-   // The actual normalization logic would go here, modifying the input vector to have a unit length.
-}
-
-void CrossProduct(double *a, double *b, double *c)
-{
-   // Placeholder for actual implementation
-   // The actual cross product logic would go here.
-}
-
-void Matrix3Vector(double M[3][3], double v[3], double result[3])
-{
-   // Placeholder for actual implementation
-   // The actual matrix-vector multiplication logic would go here.
-}
-
-double (*InvertMatrix3(double M[3][3]))[3]
-{
-   // Placeholder for actual implementation
-   // The actual matrix inversion logic would go here.
-}
-
-
 /* ********************************************************************
    UBA
 /* ********************************************************************
@@ -162,79 +137,8 @@ void esProcessing(struct AcType *AC)
             rmm_cov_diag = [sigma(4,4); sigma(5,5); sigma(6,6)];
         end
 */
-  int adcsMagSunUBA(struct AcType *AC)
-  int adcsUBA(struct AcType *AC)
-  {
 
-   int retval = 0.;
-   static int secondspointed = 0, secondssun = 0, spinseconds = 0, timepostdetumbling = 0;
-   double qe[4]={0.,0.,0.,1.};
-
-   timepostdetumbling += AC->DT;
-
-   // Matriz Gamma promedio móvil
-   static double GAV[3][3] = {{0,0,0}, {0,0,0}, {0,0,0}};
-
-   static double earthvel = 0.;        // != 0 => M3,                   earthvel * wo
-   double nm=0.;                       // Auxiliary Variable
-
-   /* Get ADCS configuration */
-   AcConfig_t *config = GetAcConfig();
-
-   enum AcMode currentMode = GetCurrentMode(AC);
-
-   switch(currentMode) {
-      case AC_MODE_DETUMBLE:
-
-         adcsDetumbling(AC, config);
-
-         if (DetumbleDone(AC, config)) {
-            UpdateMode(AC, AC_MODE_SUN_POINTING);
-            currentMode = AC_MODE_SUN_POINTING;
-         }
-
-         break;
-
-      case AC_MODE_SUN_POINTING:
-
-         adcsSunPointing(AC, config);
-
-         break;
-      case AC_MODE_NADIR_POINTING:
-
-         adcsNadirPointing(AC, config);
-
-         break;
-   }
-
-   static int first=1;
-   FILE *FilePtr;
-   if (first) {
-      first=0;
-      FilePtr = fopen("MTQSAT/mission.m", "w");
-      if (FilePtr != NULL) {
-         fprintf(FilePtr, "vm=[%f %f %f %f %f %f %f %f %f %f %f %f %f %f];\n", qe[0], qe[1], qe[2], qe[3], GAV[0][0], GAV[0][1], GAV[0][2], GAV[1][0], GAV[1][1], GAV[1][2], GAV[2][0], GAV[2][1], GAV[2][2]);
-         fflush(FilePtr);
-         fclose(FilePtr);
-         printf("DEBUG: Successfully wrote to MTQSAT/mission.m\n");
-      } else {
-         printf("ERROR: Could not open MTQSAT/mission.m for writing (errno: %d)\n", errno);
-         perror("fopen");
-      }
-   } else {
-      FilePtr = fopen("MTQSAT/mission.m", "a");
-      if (FilePtr != NULL) {
-         fprintf(FilePtr, "vm=[vm;%f %f %f %f %f %f %f %f %f %f %f %f %f %f];\n", qe[0], qe[1], qe[2], qe[3], GAV[0][0], GAV[0][1], GAV[0][2], GAV[1][0], GAV[1][1], GAV[1][2], GAV[2][0], GAV[2][1], GAV[2][2]);
-         fflush(FilePtr);
-         fclose(FilePtr);
-      }
-   }
-
-   return retval;
-  
-  }
-
-  int adcsDetumbling(struct AcType *AC, struct AcConfig *config)
+int adcsDetumbling(struct AcType *AC, struct AcConfig *config)
   {
       // Detumbling Control Algorithm
       // This function implements the detumbling control algorithm for the spacecraft.
@@ -270,6 +174,87 @@ void esProcessing(struct AcType *AC)
       return 0; // Return 0 to indicate successful execution
   }
 
+int adcsNadirPointing(struct AcType *AC, struct AcConfig *config)
+  {
+      // Nadir Pointing Control Algorithm
+      // This function implements the nadir pointing control algorithm for the spacecraft.
+      // It uses the horizon sensor readings and applies a control law to align the spacecraft with the nadir direction.
+      
+      // Placeholder for actual implementation
+      // The actual control logic would go here, using AC->hvb, AC->wbn, and other relevant state variables.
+      double b_norm = Norm3Vector(AC->bvb); // Calculate the norm of the magnetic field vector
+      if (b_norm > 1e-12) {
+
+         double (*J)[3] = AC->MOI; // Inertia matrix
+         double inverse_J[3][3];
+         InvertMatrix3(AC->MOI, inverse_J);
+         double (*invJ)[3] = inverse_J; // Inertia matrix
+         double d_component[3];
+         double p_component[3];
+         double u[3];
+         double m[3];
+         double qs[3];
+         double qs0;
+         double angle;
+         double qs_norm;
+         static int init_sp_loop = 1; // Sign of the scalar part of the quaternion representing the sun pointing error
+         int signqs0 = 1; // Sign of the scalar part of the quaternion representing the sun pointing error
+         double kw = config->kw_nadirpointing; // Control gain from configuration
+         double kp = config->kp_nadirpointing; // Proportional gain for nadir pointing
+         double eps = config->eps_nadirpointing; // Small positive constant from configuration
+
+
+         if (Norm3Vector(AC->svb) > 0) {
+            CrossProduct(AC->svb, config->nadir_pointing_vector, qs); // Compute the nadir vector error
+            qs_norm = Norm3Vector(qs);
+            angle = asin(qs_norm); // Calculate the angle between the current sun vector and the desired sun pointing vector 
+            qs0 = cos(angle/2.); // Calculate the scalar part of the quaternion representing the sun pointing error
+            if (qs_norm > 1e-12) {
+               for (int i = 0; i < 3; i++) {
+                  qs[i] = (qs[i] / qs_norm) * sin(angle/2.); // Normalize the sun vector error
+               }
+            } else {
+               for (int i = 0; i < 3; i++) {
+                  qs[i] = 0.0; // If the sun vector error is negligible, set it to zero
+               }
+            }
+            for (int i = 0; i < 3; i++) {
+               qs[i] = (qs[i] / Norm3Vector(qs)) * sin(angle/2.); // Normalize the sun vector error
+            }
+            Matrix3Vector(invJ, qs, p_component); // Compute the proportional component based on sun vector and inertia
+         }
+         else {
+            for (int i = 0; i < 3; i++) {
+               p_component[i] = 0.0; // Set the proportional component to zero
+            }
+            qs0 = 1.0; // Set the scalar part of the quaternion to 1 (no error)
+         }
+
+         if (init_sp_loop) {
+            signqs0 = (qs0 >= 0) ? 1.0 : -1.0; // Determine the sign of the scalar part of the quaternion
+            init_sp_loop = 0; // Mark the initialization as done
+         }
+
+         Matrix3Vector(J, AC->wbn, d_component); // Compute the control moment based on angular velocity and inertia
+         for (int i = 0; i < 3; i++) {
+             u[i] = -kw * eps * u[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law
+         }
+         CrossProduct(AC->svb, u, m); // Compute the magnetic moment command for sun pointing
+         for (size_t i = 0; i < 3; i++)
+         {
+            m[i] = m[i] / b_norm; // Normalize the magnetic moment command
+            AC->Mcmd[i] = m[i];
+         }
+      }
+      else 
+      {
+         return 1;
+      }
+      
+      return 0; // Return 0 to indicate successful execution
+  }
+
+
   int adcsSunPointing(struct AcType *AC, struct AcConfig *config)
   {
       // Sun Pointing Control Algorithm
@@ -282,7 +267,9 @@ void esProcessing(struct AcType *AC)
       if (b_norm > 1e-12) {
 
          double (*J)[3] = AC->MOI; // Inertia matrix
-         double (*invJ)[3] = InvertMatrix3(AC->MOI); // Inertia matrix
+         double invJ_dimensions[3][3];
+         double (*invJ)[3] = invJ_dimensions;
+         InvertMatrix3(AC->MOI, invJ); // Inverted Inertia matrix
          double d_component[3];
          double p_component[3];
          double u[3];
@@ -350,81 +337,74 @@ void esProcessing(struct AcType *AC)
   }
 
 
-int adcsNadirPointing(struct AcType *AC, struct AcConfig *config)
+int adcsUBA(struct AcType *AC)
   {
-      // Nadir Pointing Control Algorithm
-      // This function implements the nadir pointing control algorithm for the spacecraft.
-      // It uses the horizon sensor readings and applies a control law to align the spacecraft with the nadir direction.
-      
-      // Placeholder for actual implementation
-      // The actual control logic would go here, using AC->hvb, AC->wbn, and other relevant state variables.
-      double b_norm = Norm3Vector(AC->bvb); // Calculate the norm of the magnetic field vector
-      if (b_norm > 1e-12) {
 
-         double (*J)[3] = AC->MOI; // Inertia matrix
-         double (*invJ)[3] = InvertMatrix3(AC->MOI); // Inertia matrix
-         double d_component[3];
-         double p_component[3];
-         double u[3];
-         double m[3];
-         double qs[3];
-         double qs0;
-         double angle;
-         double qs_norm;
-         static int init_sp_loop = 1; // Sign of the scalar part of the quaternion representing the sun pointing error
-         int signqs0 = 1; // Sign of the scalar part of the quaternion representing the sun pointing error
-         double kw = config->kw_nadirpointing; // Control gain from configuration
-         double kp = config->kp_nadirpointing; // Proportional gain for nadir pointing
-         double eps = config->eps_nadirpointing; // Small positive constant from configuration
+   int retval = 0.;
+   // static int secondspointed = 0, secondssun = 0, spinseconds = 0, timepostdetumbling = 0;
+   static int timepostdetumbling = 0;
+   double qe[4]={0.,0.,0.,1.};
 
+   timepostdetumbling += AC->DT;
 
-         if (Norm3Vector(AC->svb) > 0) {
-            CrossProduct(AC->svb, config->nadir_pointing_vector, qs); // Compute the nadir vector error
-            qs_norm = Norm3Vector(qs);
-            angle = asin(qs_norm); // Calculate the angle between the current sun vector and the desired sun pointing vector 
-            qs0 = cos(angle/2.); // Calculate the scalar part of the quaternion representing the sun pointing error
-            if (qs_norm > 1e-12) {
-               for (int i = 0; i < 3; i++) {
-                  qs[i] = (qs[i] / qs_norm) * sin(angle/2.); // Normalize the sun vector error
-               }
-            } else {
-               for (int i = 0; i < 3; i++) {
-                  qs[i] = 0.0; // If the sun vector error is negligible, set it to zero
-               }
-            }
-            for (int i = 0; i < 3; i++) {
-               qs[i] = (qs[i] / Norm3Vector(qs)) * sin(angle/2.); // Normalize the sun vector error
-            }
-            Matrix3Vector(invJ, qs, p_component); // Compute the proportional component based on sun vector and inertia
-         }
-         else {
-            for (int i = 0; i < 3; i++) {
-               p_component[i] = 0.0; // Set the proportional component to zero
-            }
-            qs0 = 1.0; // Set the scalar part of the quaternion to 1 (no error)
+   // Matriz Gamma promedio móvil
+   static double GAV[3][3] = {{0,0,0}, {0,0,0}, {0,0,0}};
+
+   static double earthvel = 0.;        // != 0 => M3,                   earthvel * wo
+   double nm=0.;                       // Auxiliary Variable
+
+   /* Get ADCS configuration */
+   AcConfig_t *config = GetAcConfig();
+
+   enum AcMode currentMode = GetCurrentMode(AC);
+
+   switch(currentMode) {
+      case AC_MODE_DETUMBLE:
+
+         adcsDetumbling(AC, config);
+
+         if (DetumbleDone(AC, config)) {
+            UpdateMode(AC, config);
+            currentMode = AC_MODE_SUN_POINTING;
          }
 
-         if (init_sp_loop) {
-            signqs0 = (qs0 >= 0) ? 1.0 : -1.0; // Determine the sign of the scalar part of the quaternion
-            init_sp_loop = 0; // Mark the initialization as done
-         }
+         break;
 
-         Matrix3Vector(J, AC->wbn, d_component); // Compute the control moment based on angular velocity and inertia
-         for (int i = 0; i < 3; i++) {
-             u[i] = -kw * eps * u[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law
-         }
-         CrossProduct(AC->svb, u, m); // Compute the magnetic moment command for sun pointing
-         for (size_t i = 0; i < 3; i++)
-         {
-            m[i] = m[i] / b_norm; // Normalize the magnetic moment command
-            AC->Mcmd[i] = m[i];
-         }
+      case AC_MODE_SUN_POINTING:
+
+         adcsSunPointing(AC, config);
+
+         break;
+      case AC_MODE_NADIR_POINTING:
+
+         adcsNadirPointing(AC, config);
+
+         break;
+   }
+
+   static int first=1;
+   FILE *FilePtr;
+   if (first) {
+      first=0;
+      FilePtr = fopen("MTQSAT/mission.m", "w");
+      if (FilePtr != NULL) {
+         fprintf(FilePtr, "vm=[%f %f %f %f %f %f %f %f %f %f %f %f %f %f];\n", qe[0], qe[1], qe[2], qe[3], GAV[0][0], GAV[0][1], GAV[0][2], GAV[1][0], GAV[1][1], GAV[1][2], GAV[2][0], GAV[2][1], GAV[2][2]);
+         fflush(FilePtr);
+         fclose(FilePtr);
+         printf("DEBUG: Successfully wrote to MTQSAT/mission.m\n");
+      } else {
+         printf("ERROR: Could not open MTQSAT/mission.m for writing (errno: %d)\n", errno);
+         perror("fopen");
       }
-      else 
-      {
-         return 1;
+   } else {
+      FilePtr = fopen("MTQSAT/mission.m", "a");
+      if (FilePtr != NULL) {
+         fprintf(FilePtr, "vm=[vm;%f %f %f %f %f %f %f %f %f %f %f %f %f %f];\n", qe[0], qe[1], qe[2], qe[3], GAV[0][0], GAV[0][1], GAV[0][2], GAV[1][0], GAV[1][1], GAV[1][2], GAV[2][0], GAV[2][1], GAV[2][2]);
+         fflush(FilePtr);
+         fclose(FilePtr);
       }
-      
-      return 0; // Return 0 to indicate successful execution
+   }
+
+   return retval;
+  
   }
-

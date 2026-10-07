@@ -14,6 +14,7 @@
 
 #include "42.h"
 #include "mtqfsw.h"
+#include <math.h>
 #include <stdio.h>
 
 #ifdef _ENABLE_RBT_
@@ -1459,12 +1460,23 @@ void MtbProcessing2(struct AcType *AC)
 /*  End Actuator Processing Functions                                 */
 /**********************************************************************/
 
+/* Roll y Pitch son los errores angulares de apuntamiento del AcEarthSensorType en AcTypes.h */
+void HorizonProcessing2(struct AcType *AC)
+{
+   if (!AC->ES.Valid || !isfinite(AC->ES.Roll)
+      || !isfinite(AC->ES.Pitch)) {
+      AC->ES.Valid = FALSE;
+      AC->ES.Roll = 0.0;
+      AC->ES.Pitch = 0.0;
+   }
+}
+
 void MtqFSW(struct AcType *AC)
 {
       GyroProcessing2(AC);
       MagnetometerProcessing2(AC);
       CssProcessing2(AC);
-      HorizonProcessing2(AC),
+   HorizonProcessing2(AC);
 
       adcsUBA(AC);
 

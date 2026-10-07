@@ -920,3 +920,12 @@ double Norm3Vector(const double vector[3])
    return sqrt(vector[0]*vector[0] + vector[1]*vector[1]
       + vector[2]*vector[2]);
 }
+
+void Normalize3Vector(double vector[3])
+{
+   double norm = Norm3Vector(vector);
+   if (norm < 1.0E-30) norm = 1.0;
+   vector[0] = vector[0]/norm;
+   vector[1] = vector[1]/norm;
+   vector[2] = vector[2]/norm;
+}

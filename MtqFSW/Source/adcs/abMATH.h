@@ -35,6 +35,7 @@ void Matrix3Vector(const double matrix[3][3], const double vector[3], double res
 void Matrix3Multiply(const double left[3][3], const double right[3][3], double result[3][3]);
 int InvertMatrix3(const double matrix[3][3], double inverse[3][3]);
 double Norm3Vector(const double vector[3]);
+void Normalize3Vector(double vector[3]);
 void Matrix6Multiply(const double left[6][6], const double right[6][6], double result[6][6]);
 void Matrix6MultiplyTranspose(const double left[6][6], const double right[6][6], double result[6][6]);
 void MatrixExponential6(const double matrix[6][6], double exponential[6][6]);

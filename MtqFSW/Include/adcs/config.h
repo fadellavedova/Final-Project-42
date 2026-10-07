@@ -24,18 +24,18 @@ typedef struct AcConfig {
 } AcConfig_t;
 
 static AcConfig_t ac_config = {
-    .detumble_angular_velocity_threshold_low = 0.01, // Example value
+    .detumble_angular_velocity_threshold_low = 0.001, // Example value
     .detumble_angular_velocity_threshold_high = 0.1, // Example value
     
-    .kw_detumb = 0.5, // Example value
+    .kw_detumb = 0.33, // Example value
     .eps_detumb = 0.01, // Example value
 
-    .kw_sunpointing = 0.5, // Example value
-    .kp_sunpointing = 0.1, // Example value
+    .kw_sunpointing = 0.33, // Example value
+    .kp_sunpointing = 0.000025, // Example value
     .eps_sunpointing = 0.01, // Example value
 
-    .kw_nadirpointing = 0.5, // Example value
-    .kp_nadirpointing = 0.1, // Example value
+    .kw_nadirpointing = 0.33, // Example value
+    .kp_nadirpointing = 0.000025, // Example value
     .eps_nadirpointing = 0.01, // Example value
 
     .nadir_pointing_vector = {0.0, 0.0, -1.0}, // Pointing towards nadir in body frame

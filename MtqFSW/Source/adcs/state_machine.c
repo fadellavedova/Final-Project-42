@@ -26,7 +26,6 @@ int ExitNominal(struct AcType *AC, AcConfig_t *config)
 
 void UpdateMode(struct AcType *AC, AcConfig_t *config)
 {
-    static AcMode_t mode[MAX_MODE_ENTRIES];
     static int initialized = 0;
     if (!initialized) {
         for (int i = 0; i < MAX_MODE_ENTRIES; i++) {
@@ -62,12 +61,6 @@ void UpdateMode(struct AcType *AC, AcConfig_t *config)
             }
             break;
     }
-
-
-
-
-
-
 }
 
 enum AcMode GetCurrentMode(struct AcType *AC)

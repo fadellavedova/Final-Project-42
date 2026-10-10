@@ -1,9 +1,7 @@
 #include "adcs/ekf_rmm.h"
 #include "abMATH.h"
-
 #include <math.h>
 #include <string.h>
-#include "adcs/config.h"
 
 #define EKF_STATE_SIZE 6
 #define EKF_MEASUREMENT_SIZE 3
@@ -21,17 +19,50 @@ void RmmEkfInit(
    ekf->initialized = 1;
 }
 
-int RmmEkfStep(
-    struct RmmEkf *ekf,
-    const double magneticCommand[3],
-    const double inertia[3][3],
-    const double magneticField[3],
-    const double angularRateMeasurement[3],
-    double dt)
+int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
 {
-   const double velocityGain = 10.0;
-   const double epsilon = 0.001;
-   double inertiaInverse[3][3];
+   enum AcMode mode = GetCurrentMode(AC);
+
+   double velocityGain;
+   double epsilon;
+
+   switch (mode)
+   {
+   case AC_MODE_DETUMBLE:
+      velocityGain = config_ac->kw_detumb;
+      epsilon = config_ac->eps_detumb;
+   case AC_MODE_SUN_POINTING:
+      if (!AC->SunValid)
+      {
+         velocityGain = config_ac->kw_sunpointing_eclipse;
+         epsilon = config_ac->eps_sunpointing_eclipse;
+      }
+      else
+      {
+         velocityGain = config_ac->kw_sunpointing;
+         epsilon = config_ac->eps_sunpointing;
+      }
+   case AC_MODE_NADIR_POINTING:
+      if (!AC->ES.Valid)
+      {
+         velocityGain = config_ac->kw_nadirpointing_nohorizon;
+         epsilon = config_ac->eps_nadirpointing_nohorizon;
+      }
+      else
+      {
+         velocityGain = config_ac->kw_nadirpointing;
+         epsilon = config_ac->eps_nadirpointing;
+      }
+   }
+
+   double (*inertia)[3] = config_ac->J;
+   double (*inertiaInverse)[3] = config_ac->inv_J;
+   double *magneticCommand = AC->Mcmd;
+   double *magneticField = AC->bvb;
+   double *angularRateMeasurement = AC->wbn;
+   double dt = AC->DT;
+   struct RmmEkf *ekf = AC->ekf;
+   
    double angularMomentum[3];
    double commandTorque[3];
    double residualTorque[3];
@@ -63,7 +94,7 @@ int RmmEkfStep(
    long column;
    long inner;
    double eye[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
-   double angular_aux[3][3];
+   double angular_aux[3];
 
    if (!ekf || !ekf->initialized || dt <= 0.0)
       return 0;
@@ -77,16 +108,16 @@ int RmmEkfStep(
    if (fieldNormSquared < 1.0E-30)
       return 0;
 
-   Matrix3Vector_trunc(inertia, &(ekf->x), angularMomentum, 0, 3);
+   Matrix3Vector_trunc(inertia, ekf->x, angularMomentum, 0, 3);
    CrossProduct(magneticCommand, magneticField, commandTorque);
-   CrossProduct(&ekf->x[3], magneticField, residualTorque);
-   CrossProduct(ekf->x, angularMomentum, gyroscopicTorque);
+   CrossProduct(&ekf->x[3], magneticField, residualTorque); // rmm x B
+   CrossProduct(ekf->x, angularMomentum, gyroscopicTorque); // w x L = w x Jw
    for (row = 0; row < 3; row++)
    {
       netTorque[row] = commandTorque[row] + residualTorque[row] - gyroscopicTorque[row];
    }
    Matrix3Vector(inertiaInverse, netTorque, angularAcceleration);
-   Matrix3Vector_trunc(eye, &(ekf->x), angular_aux ,0, 3);
+   Matrix3Vector_trunc(eye, ekf->x, angular_aux, 0, 3);
    Skew(angular_aux, angularRateSkew);
    Skew(angularMomentum, angularMomentumSkew);
    Skew(magneticField, magneticFieldSkew);

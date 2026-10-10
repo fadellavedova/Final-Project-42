@@ -14,7 +14,9 @@
 
 #ifndef __ACTYPES_H__
 #define __ACTYPES_H__
-#include "adcs/ekf_rmm.h"
+
+
+struct RmmEkf;
 
 /*
 ** #ifdef __cplusplus
@@ -454,7 +456,7 @@ struct AcType {
    
    struct CmdType Cmd;
 
-   struct RmmEkf ekf;
+   struct RmmEkf *ekf;
 };
 
 /*

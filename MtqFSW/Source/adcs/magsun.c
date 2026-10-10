@@ -19,7 +19,7 @@ const double EARTHOMEGA = 7.2921151467e-5; // in RADIANS/SECOND
 const double EARTH_J2 = 1.082616e-3;
 const double EARTH_J3 = -2.538810e-6;
 const double EARTH_J4 = -1.655970e-6;
-const double  EYE[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+const double EYE[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
 
 double earthradius = RE;
 
@@ -157,12 +157,12 @@ void esProcessing(struct AcType *AC) // FUNCION: tiene que calcular el vecornadi
    Se puede tener el objeto filtro dentro del AC y llamarlo desde ahí? Lo inicializamos en la primera iteracion con un static int que despues vaya a 0
 */
 
-int adcsDetumbling(struct AcType *AC, struct AcConfig *config)
+int adcsDetumbling(struct AcType *AC, AcConfig_t *config)
 {
    // Detumbling Control Algorithm
 
    double b_norm = Norm3Vector(AC->bvb);
-   double (*J)[3] = AC->MOI;
+   double (*J)[3] = config->J;
    double u[3];
    double m[3];
    double kw = config->kw_detumb;
@@ -177,10 +177,10 @@ int adcsDetumbling(struct AcType *AC, struct AcConfig *config)
          u[i] = -kw * eps * u[i]; // Control law
       }
       CrossProduct(AC->bvb, u, m); // Compute the magnetic moment command
-      Matrix3Vector_trunc(J, &(AC->ekf.x), aux, 0, 3);
+      Matrix3Vector_trunc(J, (AC->ekf)->x, aux, 0, 3);
       for (size_t i = 0; i < 3; i++)
       {
-         m[i] = (m[i] / (b_norm * b_norm)) ; // Normalize the magnetic moment command
+         m[i] = (m[i] / (b_norm * b_norm)); // Normalize the magnetic moment command
          AC->Mcmd[i] = m[i];
       }
    }
@@ -193,20 +193,16 @@ int adcsDetumbling(struct AcType *AC, struct AcConfig *config)
    return 0; // Return 0 to indicate successful execution
 }
 
-int adcsNadirPointing(struct AcType *AC, struct AcConfig *config)
+int adcsNadirPointing(struct AcType *AC, AcConfig_t *config)
 {
    // Nadir Pointing Control Algorithm
 
    double b_norm = Norm3Vector(AC->bvb);
-   AC -> ekf.x;
-
    if (b_norm > 1e-12)
    {
 
-      double (*J)[3] = AC->MOI;
-      double inverse_J[3][3];
-      InvertMatrix3(AC->MOI, inverse_J);
-      double (*invJ)[3] = inverse_J;
+      double (*J)[3] = config->J;
+      double (*inverse_J)[3] = config->inv_J;
       double d_component[3];
       double p_component[3];
       double u[3];
@@ -242,7 +238,7 @@ int adcsNadirPointing(struct AcType *AC, struct AcConfig *config)
                qs[i] = 0.0;
             }
          }
-         Matrix3Vector(invJ, qs, p_component); // Compute the proportional component
+         Matrix3Vector(inverse_J, qs, p_component); // Compute the proportional component
          if (init_sp_loop)
          {
             signqs0 = (qs0 >= 0) ? 1.0 : -1.0; // Determine the sign of the scalar part of the quaternion
@@ -258,13 +254,13 @@ int adcsNadirPointing(struct AcType *AC, struct AcConfig *config)
          qs0 = 1.0; // Set the scalar part of the quaternion to 1 (no error)
       }
 
-      Matrix3Vector_trunc(J, &(AC->ekf.x), d_component, 0, 3); // Compute the derivative component
+      Matrix3Vector_trunc(J, (AC->ekf)->x, d_component, 0, 3); // Compute the derivative component
       for (int i = 0; i < 3; i++)
       {
          u[i] = -kw * eps * d_component[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law
       }
       CrossProduct(AC->svb, u, m); // Compute the magnetic moment command for sun pointing
-      Matrix3Vector_trunc(EYE, &(AC->ekf.x), aux, 3, 6);
+      Matrix3Vector_trunc(EYE, (AC->ekf)->x, aux, 3, 6);
       for (size_t i = 0; i < 3; i++)
       {
          m[i] = (m[i] / (b_norm * b_norm)) - aux[i]; // Normalize the magnetic moment command
@@ -279,7 +275,7 @@ int adcsNadirPointing(struct AcType *AC, struct AcConfig *config)
    return 0;
 }
 
-int adcsSunPointing(struct AcType *AC, struct AcConfig *config)
+int adcsSunPointing(struct AcType *AC, AcConfig_t *config)
 {
    // Sun Pointing Control Algorithm
 
@@ -287,9 +283,8 @@ int adcsSunPointing(struct AcType *AC, struct AcConfig *config)
    if (b_norm > 1e-12)
    {
 
-      double (*J)[3] = AC->MOI;
-      double invJ[3][3];
-      InvertMatrix3(AC->MOI, invJ);
+      double (*J)[3] = config->J;
+      double (*inverse_J)[3] = config->inv_J;
       double d_component[3];
       double p_component[3];
       double u[3];
@@ -309,7 +304,7 @@ int adcsSunPointing(struct AcType *AC, struct AcConfig *config)
       {
          CrossProduct(AC->svb, config->sun_pointing_vector, qs); // Compute the sun vector error
          qs_norm = Norm3Vector(qs);
-         double dot = VoV(AC -> svb, config -> sun_pointing_vector);
+         double dot = VoV(AC->svb, config->sun_pointing_vector);
          angle = atan2(qs_norm, dot);
          qs0 = cos(angle / 2.);
          if (qs_norm > 1e-12)
@@ -327,7 +322,7 @@ int adcsSunPointing(struct AcType *AC, struct AcConfig *config)
                qs0 = 1.0;
             }
          }
-         Matrix3Vector(invJ, qs, p_component);
+         Matrix3Vector(inverse_J, qs, p_component);
 
          if (init_sp_loop)
          {
@@ -349,17 +344,11 @@ int adcsSunPointing(struct AcType *AC, struct AcConfig *config)
       {
          u[i] = -kw * eps * d_component[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law
       }
-      printf("Sun pointing u = [%.17g, %.17g, %.17g]\n", u[0], u[1], u[2]);
       CrossProduct(AC->svb, u, m); // Compute the magnetic moment command for sun pointing
-      Matrix3Vector_trunc(EYE, &(AC->ekf.x), aux, 3, 6);
+      Matrix3Vector_trunc(EYE, (AC->ekf)->x, aux, 3, 6);
       for (size_t i = 0; i < 3; i++)
       {
          m[i] = (m[i] / (b_norm * b_norm)) - aux[i];
-         if (!isfinite(m[i]))
-         {
-            fprintf(stderr, "Sun pointing nonfinite axis=%zu b_norm=%.17g svb=%.17g u=%.17g d=%.17g p=%.17g ekf=%.17g Mcmd=%.17g\n",
-                    i, b_norm, AC->svb[i], u[i], d_component[i], p_component[i], aux[i], m[i]);
-         }
          AC->Mcmd[i] = m[i];
       }
    }
@@ -373,42 +362,39 @@ int adcsSunPointing(struct AcType *AC, struct AcConfig *config)
 
 int adcsUBA(struct AcType *AC)
 {
-
    /* Get EKF configuration */
    Ekf_config_t *config_ekf = GetEkfConfig();
-   if (AC->ekf.initialized != 1)
+
+   if ((AC->ekf)->initialized != 1)
    {
-      RmmEkfInit(&(AC->ekf), config_ekf);
+      RmmEkfInit(AC->ekf, config_ekf);
    }
 
    int retval = 0.;
 
    /* Get ADCS configuration */
-   AcConfig_t *config = GetAcConfig();
+   AcConfig_t *config_ac = GetAcConfig();
 
-   UpdateMode(AC, config);
+   UpdateMode(AC, config_ac);
    enum AcMode currentMode = GetCurrentMode(AC);
 
-   RmmEkfStep(&(AC -> ekf), &(AC -> Mcmd), &(AC -> MOI), &(AC -> bvb), &(AC -> wbn), AC -> DT);
-
-
-   printf("%d", currentMode);
+   RmmEkfStep(AC, config_ac);
    switch (currentMode)
    {
    case AC_MODE_DETUMBLE:
 
-      retval = adcsDetumbling(AC, config);
+      retval = adcsDetumbling(AC, config_ac);
 
       break;
 
    case AC_MODE_SUN_POINTING:
 
-      retval = adcsSunPointing(AC, config); // Hacer algo despues con el retval
+      retval = adcsSunPointing(AC, config_ac); // Hacer algo despues con el retval
 
       break;
    case AC_MODE_NADIR_POINTING:
 
-      retval = adcsNadirPointing(AC, config);
+      retval = adcsNadirPointing(AC, config_ac);
 
       break;
    }

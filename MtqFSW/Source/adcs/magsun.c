@@ -331,7 +331,11 @@ int adcsSunPointing(struct AcType *AC, AcConfig_t *config)
          }
       }
       else
-      {
+      {  
+
+         kw = config->kw_sunpointing_eclipse;
+         eps = config->eps_sunpointing_eclipse;
+
          for (int i = 0; i < 3; i++)
          {
             p_component[i] = 0.0; // Set the proportional component to zero
@@ -342,7 +346,7 @@ int adcsSunPointing(struct AcType *AC, AcConfig_t *config)
       Matrix3Vector(J, AC->wbn, d_component); // Compute the control moment based on angular velocity and inertia
       for (int i = 0; i < 3; i++)
       {
-         u[i] = -kw * eps * d_component[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law
+         u[i] = -kw * eps * d_component[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law  u = u - obj.eps*obj.eps*obj.k_p*inv(obj.iner)*dq*signq4;
       }
       CrossProduct(AC->svb, u, m); // Compute the magnetic moment command for sun pointing
       Matrix3Vector_trunc(EYE, (AC->ekf)->x, aux, 3, 6);

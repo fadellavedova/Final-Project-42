@@ -48,11 +48,11 @@ static AcConfig_t ac_config = {
 
     .inv_J = {{476.19, 0, 0},{0, 555.5556, 0},{0, 0, 500}},
 
-    .kw_sunpointing = 0.33, // Añadir diferencia con ganancias en eclipse
+    .kw_sunpointing = 0.39, // Añadir diferencia con ganancias en eclipse
     .kp_sunpointing = 0.000025,
-    .eps_sunpointing = 0.01,
+    .eps_sunpointing = 0.02,
 
-    .kw_sunpointing_eclipse = 0.33, // Añadir diferencia con ganancias en eclipse
+    .kw_sunpointing_eclipse = 0.4, // Añadir diferencia con ganancias en eclipse
     .eps_sunpointing_eclipse = 0.01,
 
     .kw_nadirpointing = 0.33, // Añadir diferencia con ganancias cuando no hay horizonte
@@ -64,7 +64,7 @@ static AcConfig_t ac_config = {
     .eps_nadirpointing_nohorizon= 0.01,
 
     .nadir_pointing_vector = {0.0, 0.0, 1.0}, // +Z to nadir
-    .sun_pointing_vector = {0.0, 0.0, -1.0},    // -Z to sun
+    .sun_pointing_vector = {0.0, 0.0, 1.0},    // -Z to sun
 
     .eclipse_threshold = 0.5,
     .magnetic_field_min = 1e-6

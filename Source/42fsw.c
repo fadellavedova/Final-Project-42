@@ -14,6 +14,7 @@
 
 #include "42.h"
 #include "mtqfsw.h"
+#include "adcs/ekf_rmm.h"
 #include <math.h>
 #include <stdio.h>
 
@@ -781,6 +782,8 @@ void InitAC(struct SCType *S)
       AC->Init = 1;
       
       AC->ID = S->ID;
+
+      AC->ekf = (struct RmmEkf *) calloc(1,sizeof(struct RmmEkf));
       
       /* Fundamental Constants */
       AC->Pi = Pi;

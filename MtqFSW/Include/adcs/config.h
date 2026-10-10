@@ -63,8 +63,8 @@ static AcConfig_t ac_config = {
     .kp_nadirpointing_nohorizon= 0.000025,
     .eps_nadirpointing_nohorizon= 0.01,
 
-    .nadir_pointing_vector = {0.0, 0.0, -1.0}, // +Z to nadir
-    .sun_pointing_vector = {1.0, 0.0, 0.0},    // -Z to sun
+    .nadir_pointing_vector = {0.0, 0.0, 1.0}, // +Z to nadir
+    .sun_pointing_vector = {0.0, 0.0, -1.0},    // -Z to sun
 
     .eclipse_threshold = 0.5,
     .magnetic_field_min = 1e-6

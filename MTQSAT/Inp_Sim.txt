@@ -4,7 +4,7 @@ FAST                            !  Time Mode (FAST, REAL, EXTERNAL, or NOS3)
 30000.0 0.2                     !  Sim Duration, Step Size [sec] 23000
 1.0                             !  File Output Interval [sec]
 0                               !  RNG Seed
-TRUE                           !  Graphics Front End?
+TRUE                            !  Graphics Front End?
 Inp_Cmd.txt                     !  Command Script File Name
 **************************  Reference Orbits  **************************
 1                               !  Number of Reference Orbits

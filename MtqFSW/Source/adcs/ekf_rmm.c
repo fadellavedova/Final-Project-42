@@ -3,36 +3,31 @@
 
 #include <math.h>
 #include <string.h>
+#include "adcs/config.h"
 
 #define EKF_STATE_SIZE 6
 #define EKF_MEASUREMENT_SIZE 3
 
 void RmmEkfInit(
-   struct RmmEkf *ekf,
-   const double initialState[6],
-   const double initialCovariance[6][6],
-   const double processNoise[6][6],
-   const double minimumProcessNoise[6][6],
-   const double measurementNoise[3][3],
-   double alpha)
+    struct RmmEkf *ekf,
+    const Ekf_config_t *ekf_config)
 {
-   memcpy(ekf->x,initialState,sizeof(ekf->x));
-   memcpy(ekf->P,initialCovariance,sizeof(ekf->P));
-   memcpy(ekf->Q,processNoise,sizeof(ekf->Q));
-   memcpy(ekf->Qmin,minimumProcessNoise,sizeof(ekf->Qmin));
-   memcpy(ekf->R,measurementNoise,sizeof(ekf->R));
-   ekf->alpha = alpha;
+   memcpy(ekf->x, ekf_config->initialState, sizeof(ekf->x));
+   memcpy(ekf->P, ekf_config->initialCovariance, sizeof(ekf->P));
+   memcpy(ekf->Q, ekf_config->processNoise, sizeof(ekf->Q));
+   memcpy(ekf->Qmin, ekf_config->minimumProcessNoise, sizeof(ekf->Qmin));
+   memcpy(ekf->R, ekf_config->measurementNoise, sizeof(ekf->R));
+   ekf->alpha = ekf_config->alpha;
    ekf->initialized = 1;
 }
 
 int RmmEkfStep(
-   struct RmmEkf *ekf,
-   const double magneticCommand[3],
-   const double inertia[3][3],
-   const double magneticField[3],
-   const double angularRateMeasurement[3],
-   double dt
-)
+    struct RmmEkf *ekf,
+    const double magneticCommand[3],
+    const double inertia[3][3],
+    const double magneticField[3],
+    const double angularRateMeasurement[3],
+    double dt)
 {
    const double velocityGain = 10.0;
    const double epsilon = 0.001;
@@ -67,128 +62,156 @@ int RmmEkfStep(
    long row;
    long column;
    long inner;
+   double eye[3][3] = {{1, 0, 0}, {0, 1, 0}, {0, 0, 1}};
+   double angular_aux[3][3];
 
-   if (!ekf || !ekf->initialized || dt <= 0.0) return 0;
-   if (!InvertMatrix3(inertia,inertiaInverse)) return 0;
+   if (!ekf || !ekf->initialized || dt <= 0.0)
+      return 0;
+   if (!InvertMatrix3(inertia, inertiaInverse))
+      return 0;
 
-   for (row = 0; row < 3; row++) {
-      fieldNormSquared += magneticField[row]*magneticField[row];
+   for (row = 0; row < 3; row++)
+   {
+      fieldNormSquared += magneticField[row] * magneticField[row];
    }
-   if (fieldNormSquared < 1.0E-30) return 0;
+   if (fieldNormSquared < 1.0E-30)
+      return 0;
 
-   Matrix3Vector(inertia,ekf->x,angularMomentum);
-   CrossProduct(magneticCommand,magneticField,commandTorque);
-   CrossProduct(&ekf->x[3],magneticField,residualTorque);
-   CrossProduct(ekf->x,angularMomentum,gyroscopicTorque);
-   for (row = 0; row < 3; row++) {
-      netTorque[row] = commandTorque[row] + residualTorque[row]
-         - gyroscopicTorque[row];
+   Matrix3Vector_trunc(inertia, &(ekf->x), angularMomentum, 2, 5);
+   CrossProduct(magneticCommand, magneticField, commandTorque);
+   CrossProduct(&ekf->x[3], magneticField, residualTorque);
+   CrossProduct(ekf->x, angularMomentum, gyroscopicTorque);
+   for (row = 0; row < 3; row++)
+   {
+      netTorque[row] = commandTorque[row] + residualTorque[row] - gyroscopicTorque[row];
    }
-   Matrix3Vector(inertiaInverse,netTorque,angularAcceleration);
-
-   Skew(ekf->x,angularRateSkew);
-   Skew(angularMomentum,angularMomentumSkew);
-   Skew(magneticField,magneticFieldSkew);
-   Matrix3Multiply(angularRateSkew,inertia,temporary3a);
-   Matrix3Multiply(magneticFieldSkew,inertia,temporary3b);
-   Matrix3Multiply(temporary3b,magneticFieldSkew,temporary3a);
-   for (row = 0; row < 3; row++) {
-      for (column = 0; column < 3; column++) {
+   Matrix3Vector(inertiaInverse, netTorque, angularAcceleration);
+   Matrix3Vector_trunc(eye, &(ekf->x), angular_aux ,2, 5);
+   Skew(angular_aux, angularRateSkew);
+   Skew(angularMomentum, angularMomentumSkew);
+   Skew(magneticField, magneticFieldSkew);
+   Matrix3Multiply(angularRateSkew, inertia, temporary3a);
+   Matrix3Multiply(magneticFieldSkew, inertia, temporary3b);
+   Matrix3Multiply(temporary3b, magneticFieldSkew, temporary3a);
+   for (row = 0; row < 3; row++)
+   {
+      for (column = 0; column < 3; column++)
+      {
          double rateTerm = 0.0;
-         double magneticTerm = temporary3a[row][column]
-            *epsilon*velocityGain/fieldNormSquared;
-         for (inner = 0; inner < 3; inner++) {
-            rateTerm += angularRateSkew[row][inner]*inertia[inner][column];
+         double magneticTerm = temporary3a[row][column] * epsilon * velocityGain / fieldNormSquared;
+         for (inner = 0; inner < 3; inner++)
+         {
+            rateTerm += angularRateSkew[row][inner] * inertia[inner][column];
          }
-         temporary3b[row][column] = angularMomentumSkew[row][column]
-            - rateTerm - magneticTerm;
+         temporary3b[row][column] = angularMomentumSkew[row][column] - rateTerm - magneticTerm;
       }
    }
-   Matrix3Multiply(inertiaInverse,temporary3b,temporary3a);
-   Matrix3Multiply(inertiaInverse,magneticFieldSkew,temporary3b);
-   for (row = 0; row < 3; row++) {
-      for (column = 0; column < 3; column++) {
+   Matrix3Multiply(inertiaInverse, temporary3b, temporary3a);
+   Matrix3Multiply(inertiaInverse, magneticFieldSkew, temporary3b);
+   for (row = 0; row < 3; row++)
+   {
+      for (column = 0; column < 3; column++)
+      {
          linearizedDynamics[row][column] = temporary3a[row][column];
          linearizedDynamics[row][column + 3] = -temporary3b[row][column];
       }
    }
 
-   for (row = 0; row < 6; row++) {
+   for (row = 0; row < 6; row++)
+   {
       predictedState[row] = ekf->x[row];
-      if (row < 3) predictedState[row] += angularAcceleration[row]*dt;
-      for (column = 0; column < 6; column++) {
-         scaledDynamics[row][column] = linearizedDynamics[row][column]*dt;
+      if (row < 3)
+         predictedState[row] += angularAcceleration[row] * dt;
+      for (column = 0; column < 6; column++)
+      {
+         scaledDynamics[row][column] = linearizedDynamics[row][column] * dt;
       }
    }
-   MatrixExponential6(scaledDynamics,ekf->Phi);
-   for (row = 0; row < 6; row++) {
-      for (column = 0; column < 6; column++) {
-         gamma[row][column] = dt*ekf->Phi[row][column];
+   MatrixExponential6(scaledDynamics, ekf->Phi);
+   for (row = 0; row < 6; row++)
+   {
+      for (column = 0; column < 6; column++)
+      {
+         gamma[row][column] = dt * ekf->Phi[row][column];
       }
    }
 
-   Matrix6Multiply(ekf->Phi,ekf->P,temporary6a);
-   Matrix6MultiplyTranspose(temporary6a,ekf->Phi,predictedCovariance);
-   Matrix6Multiply(gamma,ekf->Q,temporary6a);
-   Matrix6MultiplyTranspose(temporary6a,gamma,temporary6b);
-   for (row = 0; row < 6; row++) {
-      for (column = 0; column < 6; column++) {
+   Matrix6Multiply(ekf->Phi, ekf->P, temporary6a);
+   Matrix6MultiplyTranspose(temporary6a, ekf->Phi, predictedCovariance);
+   Matrix6Multiply(gamma, ekf->Q, temporary6a);
+   Matrix6MultiplyTranspose(temporary6a, gamma, temporary6b);
+   for (row = 0; row < 6; row++)
+   {
+      for (column = 0; column < 6; column++)
+      {
          predictedCovariance[row][column] += temporary6b[row][column];
       }
    }
 
-   for (row = 0; row < 3; row++) {
-      for (column = 0; column < 3; column++) {
+   for (row = 0; row < 3; row++)
+   {
+      for (column = 0; column < 3; column++)
+      {
          innovationCovariance[row][column] =
-            predictedCovariance[row][column] + ekf->R[row][column];
+             predictedCovariance[row][column] + ekf->R[row][column];
       }
    }
-   if (!InvertMatrix3(innovationCovariance,innovationCovarianceInverse)) return 0;
+   if (!InvertMatrix3(innovationCovariance, innovationCovarianceInverse))
+      return 0;
 
-   for (row = 0; row < 6; row++) {
-      for (column = 0; column < 3; column++) {
+   for (row = 0; row < 6; row++)
+   {
+      for (column = 0; column < 3; column++)
+      {
          kalmanGain[row][column] = 0.0;
-         for (inner = 0; inner < 3; inner++) {
-            kalmanGain[row][column] += predictedCovariance[row][inner]
-               *innovationCovarianceInverse[inner][column];
+         for (inner = 0; inner < 3; inner++)
+         {
+            kalmanGain[row][column] += predictedCovariance[row][inner] * innovationCovarianceInverse[inner][column];
          }
       }
    }
 
-   for (row = 0; row < 3; row++) {
+   for (row = 0; row < 3; row++)
+   {
       innovation[row] = angularRateMeasurement[row] - predictedState[row];
    }
-   for (row = 0; row < 6; row++) {
-      for (column = 0; column < 3; column++) {
-         stateCorrection[row] += kalmanGain[row][column]*innovation[column];
+   for (row = 0; row < 6; row++)
+   {
+      for (column = 0; column < 3; column++)
+      {
+         stateCorrection[row] += kalmanGain[row][column] * innovation[column];
       }
       ekf->x[row] = predictedState[row] + stateCorrection[row];
    }
 
-   for (row = 0; row < 6; row++) {
+   for (row = 0; row < 6; row++)
+   {
       covarianceFactor[row][row] = 1.0;
-      for (column = 0; column < 3; column++) {
+      for (column = 0; column < 3; column++)
+      {
          covarianceFactor[row][column] -= kalmanGain[row][column];
       }
    }
-   Matrix6Multiply(covarianceFactor,predictedCovariance,correctedCovariance);
-   memcpy(ekf->P,correctedCovariance,sizeof(ekf->P));
+   Matrix6Multiply(covarianceFactor, predictedCovariance, correctedCovariance);
+   memcpy(ekf->P, correctedCovariance, sizeof(ekf->P));
 
-   for (row = 0; row < 3; row++) {
+   for (row = 0; row < 3; row++)
+   {
       correctedInnovation[row] = angularRateMeasurement[row] - ekf->x[row];
    }
-   for (row = 0; row < 6; row++) {
+   for (row = 0; row < 6; row++)
+   {
       stateCorrection[row] = 0.0;
-      for (column = 0; column < 3; column++) {
-         stateCorrection[row] += kalmanGain[row][column]
-            *correctedInnovation[column];
+      for (column = 0; column < 3; column++)
+      {
+         stateCorrection[row] += kalmanGain[row][column] * correctedInnovation[column];
       }
    }
-   for (row = 0; row < 6; row++) {
-      for (column = 0; column < 6; column++) {
-         ekf->Q[row][column] = (1.0 - ekf->alpha)*ekf->Q[row][column]
-            + ekf->alpha*(ekf->Qmin[row][column]
-            + stateCorrection[row]*stateCorrection[column]);
+   for (row = 0; row < 6; row++)
+   {
+      for (column = 0; column < 6; column++)
+      {
+         ekf->Q[row][column] = (1.0 - ekf->alpha) * ekf->Q[row][column] + ekf->alpha * (ekf->Qmin[row][column] + stateCorrection[row] * stateCorrection[column]);
       }
    }
 

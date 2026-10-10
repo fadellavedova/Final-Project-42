@@ -1,5 +1,6 @@
 #ifndef MTQFSW_ADCS_EKF_RMM_H
 #define MTQFSW_ADCS_EKF_RMM_H
+#include "adcs/config.h"
 
 struct RmmEkf {
    double x[6];
@@ -12,15 +13,7 @@ struct RmmEkf {
    long initialized;
 };
 
-void RmmEkfInit(
-   struct RmmEkf *ekf,
-   const double initialState[6],
-   const double initialCovariance[6][6],
-   const double processNoise[6][6],
-   const double minimumProcessNoise[6][6],
-   const double measurementNoise[3][3],
-   double alpha
-);
+void RmmEkfInit(struct RmmEkf *ekf, const Ekf_config_t *ekf_config);
 
 int RmmEkfStep(
    struct RmmEkf *ekf,

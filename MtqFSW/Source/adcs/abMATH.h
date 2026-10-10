@@ -32,6 +32,7 @@ void pVec(double v1[], double v2[], double v3[]);
 void CrossProduct(const double left[3], const double right[3], double result[3]);
 void Skew(const double vector[3], double matrix[3][3]);
 void Matrix3Vector(const double matrix[3][3], const double vector[3], double result[3]);
+int Matrix3Vector_trunc(const double matrix[3][3], const double *vector, double result[3], int i, int j);
 void Matrix3Multiply(const double left[3][3], const double right[3][3], double result[3][3]);
 int InvertMatrix3(const double matrix[3][3], double inverse[3][3]);
 double Norm3Vector(const double vector[3]);

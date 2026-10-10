@@ -2,7 +2,7 @@
 Small Cubesat                 !  Description
 "UBA"                         !  Label
 GenScSpriteAlpha.ppm          !  Sprite File Name
-TEST_FSW                      !  Flight Software Identifier
+MTQ_FSW                      !  Flight Software Identifier
 0.5                           !  FSW Sample Time, sec
 ************************* Orbit Parameters ****************************
 ENCKE                         !  Orbit Prop FIXED, EULER_HILL, or ENCKE

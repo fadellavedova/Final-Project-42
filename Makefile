@@ -262,6 +262,8 @@ AcApp : $(OBJ)AcApp.o $(ACKITOBJ) $(ACIPCOBJ) $(GMSECOBJ)
 
 ####################  Rules to compile objects  ###########################
 
+$(42OBJ) $(GUIOBJ) $(SIMIPCOBJ) $(FFTBOBJ) $(SLOSHOBJ) $(ACOBJ) $(RBTOBJ) $(TESTOBJ) : $(INC)42types.h $(INC)AcTypes.h $(TESTINC)adcs/ekf_rmm.h $(TESTINC)adcs/config.h
+
 $(OBJ)42main.o      : $(SRC)42main.c
 	$(CC) $(CFLAGS) -c $(SRC)42main.c -o $(OBJ)42main.o
 

@@ -15,6 +15,9 @@
 #ifndef __ACTYPES_H__
 #define __ACTYPES_H__
 
+
+struct RmmEkf;
+
 /*
 ** #ifdef __cplusplus
 ** namespace _42 {
@@ -334,6 +337,10 @@ struct AcCfsCtrlType {
    long Init;
    double therr[3];
    double werr[3];
+   long RmmEkfInit;
+   double RmmState[6];
+   double RmmCov[6][6];
+   double RmmQ[6][6];
 };
 
 struct AcThrSteerCtrlType {
@@ -448,6 +455,8 @@ struct AcType {
    struct AcThrSteerCtrlType ThrSteerCtrl;
    
    struct CmdType Cmd;
+
+   struct RmmEkf *ekf;
 };
 
 /*

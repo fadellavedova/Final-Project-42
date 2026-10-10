@@ -14,6 +14,8 @@
 
 #include "42.h"
 #include "mtqfsw.h"
+#include "adcs/ekf_rmm.h"
+#include <math.h>
 #include <stdio.h>
 
 #ifdef _ENABLE_RBT_
@@ -72,6 +74,22 @@ long FswCmdInterpreter(char CmdLine[512],double *CmdTime)
          CmdTime,&Isc,response) == 3) {
          NewCmdProcessed = TRUE;
          SC[Isc].FswTag = DecodeString(response);
+      }
+
+      else if (sscanf(CmdLine,"%lf SC[%ld] MTQ Mode = %s",
+         CmdTime,&Isc,response) == 3) {
+         if (!strcmp(response,"DETUMBLE")) {
+            SC[Isc].AC.ReqMode = MTQ_MODE_DETUMBLE;
+            NewCmdProcessed = TRUE;
+         }
+         else if (!strcmp(response,"SUN_POINTING")) {
+            SC[Isc].AC.ReqMode = MTQ_MODE_SUN_POINTING;
+            NewCmdProcessed = TRUE;
+         }
+         else if (!strcmp(response,"NADIR_POINTING")) {
+            SC[Isc].AC.ReqMode = MTQ_MODE_NADIR_POINTING;
+            NewCmdProcessed = TRUE;
+         }
       }
 
       else if (sscanf(CmdLine,"%lf SC[%ld] Cmd Angles = [%lf %lf %lf] deg, Seq = %ld wrt %c Frame",
@@ -764,6 +782,8 @@ void InitAC(struct SCType *S)
       AC->Init = 1;
       
       AC->ID = S->ID;
+
+      AC->ekf = (struct RmmEkf *) calloc(1,sizeof(struct RmmEkf));
       
       /* Fundamental Constants */
       AC->Pi = Pi;
@@ -977,6 +997,11 @@ void InitAC(struct SCType *S)
       AC->ThrCtrl.Init = 1;
       AC->CfsCtrl.Init = 1;
       AC->ThrSteerCtrl.Init = 1;
+
+      if (S->FswTag == MTQ_FSW) {
+         AC->Mode = MTQ_MODE_DETUMBLE;
+         AC->ReqMode = MTQ_MODE_SUN_POINTING;
+      }
       
       AC->PrototypeCtrl.wc = 0.05*TwoPi;
       AC->PrototypeCtrl.amax = 0.01;
@@ -1438,13 +1463,25 @@ void MtbProcessing2(struct AcType *AC)
 /*  End Actuator Processing Functions                                 */
 /**********************************************************************/
 
+/* Roll y Pitch son los errores angulares de apuntamiento del AcEarthSensorType en AcTypes.h */
+void HorizonProcessing2(struct AcType *AC)
+{
+   if (!AC->ES.Valid || !isfinite(AC->ES.Roll)
+      || !isfinite(AC->ES.Pitch)) {
+      AC->ES.Valid = FALSE;
+      AC->ES.Roll = 0.0;
+      AC->ES.Pitch = 0.0;
+   }
+}
+
 void MtqFSW(struct AcType *AC)
 {
       GyroProcessing2(AC);
       MagnetometerProcessing2(AC);
       CssProcessing2(AC);
+   HorizonProcessing2(AC);
 
-      adcsMagSunUBA(AC);
+      adcsUBA(AC);
 
       WheelProcessing2(AC);
       MtbProcessing2(AC);

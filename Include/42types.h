@@ -437,6 +437,20 @@ struct FssType {
    double AlbD;
 };
 
+struct EhsType {
+   /*~ Parameters ~*/
+   double SampleTime;
+   long MaxCounter;
+   long SampleCounter;
+   long Body;
+   double MountAngleX;
+   double CB[3][3];
+   double FovHalfAng;
+   double CosFov;
+   double Quant;
+   long Node;
+};
+
 struct StarTrackerType {
    /*~ Parameters ~*/
    double SampleTime;
@@ -683,6 +697,7 @@ struct SCType {
    long Nacc; /* Number of accelerometer axes */
    long Nfgs; /* Number of Fine Guidance Sensors */
    long Nsh; /* Number of shakers */
+   long Nehs; /* Number of Earth Horizon Sensors */
    
    double mass;
    double cm[3]; /* wrt B0 origin, expressed in B0 frame */
@@ -706,6 +721,9 @@ struct SCType {
    double bvb[3]; /* Magfield [[Tesla]], expressed in SC.B[0] [~=~] */
    double Hvn[3]; /* Total SC angular momentum, Nms, expressed in N */
    double Hvb[3]; /* Total SC angular momentum [[Nms]], expressed in SC.B[0] [~=~] */
+   /* Earth sensor mount: DCM from body to sensor and quaternion */
+   double ES_CB[3][3];
+   double ES_qb[4];
    long Eclipse;
    double AtmoDensity;
    double DragCoef;
@@ -754,6 +772,7 @@ struct SCType {
    struct MagnetometerType *MAG; /* [*Nmag*] */
    struct CssType *CSS;          /* [*Ncss*] */
    struct FssType *FSS;          /* [*Nfss*] */
+   struct EhsType *EHS;          /* [*Nehs*] */
    struct StarTrackerType *ST;   /* [*Nst*] */
    struct GpsType *GPS;          /* [*Ngps*] */
    struct AccelType *Accel;      /* [*Nacc*] */

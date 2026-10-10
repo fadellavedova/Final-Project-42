@@ -23,8 +23,8 @@ ifeq ($(AUTOPLATFORM),Failed)
    42PLATFORM = __MSYS__
 endif
 
-#GUIFLAG = -D _ENABLE_GUI_
-GUIFLAG = 
+GUIFLAG = -D _ENABLE_GUI_
+#GUIFLAG = 
 
 SHADERFLAG = -D _USE_SHADERS_
 #SHADERFLAG =
@@ -241,7 +241,7 @@ ACKITOBJ = $(OBJ)dcmkit.o $(OBJ)mathkit.o $(OBJ)fswkit.o $(OBJ)iokit.o $(OBJ)tim
 ACIPCOBJ = $(OBJ)AppReadFromFile.o \
 $(OBJ)AppWriteToSocket.o $(OBJ)AppReadFromSocket.o $(OBJ)AppWriteToFile.o
 
-TESTOBJ = $(OBJ)magsun.o
+TESTOBJ = $(OBJ)magsun.o $(OBJ)config.o $(OBJ)state_machine.o $(OBJ)ekf_rmm.o $(OBJ)abMATH.o
 
 #ANSIFLAGS = -Wstrict-prototypes -pedantic -ansi -Werror
 ANSIFLAGS =
@@ -262,6 +262,8 @@ AcApp : $(OBJ)AcApp.o $(ACKITOBJ) $(ACIPCOBJ) $(GMSECOBJ)
 
 
 ####################  Rules to compile objects  ###########################
+
+$(42OBJ) $(GUIOBJ) $(SIMIPCOBJ) $(FFTBOBJ) $(SLOSHOBJ) $(ACOBJ) $(RBTOBJ) $(TESTOBJ) : $(INC)42types.h $(INC)AcTypes.h $(TESTINC)adcs/ekf_rmm.h $(TESTINC)adcs/config.h
 
 $(OBJ)42main.o      : $(SRC)42main.c
 	$(CC) $(CFLAGS) -c $(SRC)42main.c -o $(OBJ)42main.o
@@ -429,6 +431,17 @@ $(OBJ)42fssalbedo.o         : $(SRC)42fssalbedo.c
 
 $(OBJ)magsun.o : $(TESTSRC)adcs/magsun.c $(TESTINC)adcs/magsun.h $(INC)42.h
 	$(CC) $(CFLAGS) -c $(TESTSRC)adcs/magsun.c -o $@
+
+$(OBJ)ekf_rmm.o : $(TESTSRC)adcs/ekf_rmm.c $(TESTINC)adcs/ekf_rmm.h $(TESTSRC)adcs/abMATH.h
+	$(CC) $(CFLAGS) -c $(TESTSRC)adcs/ekf_rmm.c -o $@
+
+$(OBJ)abMATH.o : $(TESTSRC)adcs/abMATH.cpp $(TESTSRC)adcs/abMATH.h
+	$(CXX) $(CFLAGS) -c $(TESTSRC)adcs/abMATH.cpp -o $@
+$(OBJ)config.o : $(TESTSRC)adcs/config.c $(TESTINC)adcs/config.h
+	$(CC) $(CFLAGS) -c $(TESTSRC)adcs/config.c -o $@
+
+$(OBJ)state_machine.o : $(TESTSRC)adcs/state_machine.c $(TESTINC)adcs/state_machine.h $(TESTINC)adcs/config.h $(INC)42.h
+	$(CC) $(CFLAGS) -c $(TESTSRC)adcs/state_machine.c -o $@
 
 ########################  Miscellaneous Rules  ############################
 clean :

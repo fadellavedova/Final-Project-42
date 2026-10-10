@@ -77,7 +77,7 @@ int RmmEkfStep(
    if (fieldNormSquared < 1.0E-30)
       return 0;
 
-   Matrix3Vector_trunc(inertia, &(ekf->x), angularMomentum, 2, 5);
+   Matrix3Vector_trunc(inertia, &(ekf->x), angularMomentum, 0, 3);
    CrossProduct(magneticCommand, magneticField, commandTorque);
    CrossProduct(&ekf->x[3], magneticField, residualTorque);
    CrossProduct(ekf->x, angularMomentum, gyroscopicTorque);
@@ -86,7 +86,7 @@ int RmmEkfStep(
       netTorque[row] = commandTorque[row] + residualTorque[row] - gyroscopicTorque[row];
    }
    Matrix3Vector(inertiaInverse, netTorque, angularAcceleration);
-   Matrix3Vector_trunc(eye, &(ekf->x), angular_aux ,2, 5);
+   Matrix3Vector_trunc(eye, &(ekf->x), angular_aux ,0, 3);
    Skew(angular_aux, angularRateSkew);
    Skew(angularMomentum, angularMomentumSkew);
    Skew(magneticField, magneticFieldSkew);

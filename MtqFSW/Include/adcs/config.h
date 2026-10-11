@@ -33,6 +33,8 @@ typedef struct AcConfig
 
     float eclipse_threshold; // Threshold for eclipse detection
     float magnetic_field_min;
+    int rmm_compensate;
+    float max_dipole;
 } AcConfig_t;
 
 // Poner todas las configs del sistema de control (parametros, thresholds, etc.) capaz se puede hacer otro tipo de config para el EKF(?)
@@ -48,12 +50,12 @@ static AcConfig_t ac_config = {
 
     .inv_J = {{476.19, 0, 0},{0, 555.5556, 0},{0, 0, 500}},
 
-    .kw_sunpointing = 0.39, // Añadir diferencia con ganancias en eclipse
+    .kw_sunpointing = 0.3, // Añadir diferencia con ganancias en eclipse
     .kp_sunpointing = 0.000025,
-    .eps_sunpointing = 0.02,
+    .eps_sunpointing = 0.01,
 
-    .kw_sunpointing_eclipse = 0.4, // Añadir diferencia con ganancias en eclipse
-    .eps_sunpointing_eclipse = 0.01,
+    .kw_sunpointing_eclipse = 0.3, // Añadir diferencia con ganancias en eclipse
+    .eps_sunpointing_eclipse = 0.03,
 
     .kw_nadirpointing = 0.33, // Añadir diferencia con ganancias cuando no hay horizonte
     .kp_nadirpointing = 0.000025,
@@ -64,10 +66,12 @@ static AcConfig_t ac_config = {
     .eps_nadirpointing_nohorizon= 0.01,
 
     .nadir_pointing_vector = {0.0, 0.0, 1.0}, // +Z to nadir
-    .sun_pointing_vector = {0.0, 0.0, 1.0},    // -Z to sun
+    .sun_pointing_vector = {0.0, 0.0, -1.0},    // -Z to sun
 
     .eclipse_threshold = 0.5,
-    .magnetic_field_min = 1e-6
+    .magnetic_field_min = 1e-6,
+    .rmm_compensate = 0,
+    .max_dipole = 0.2
 
 };
 
@@ -84,7 +88,7 @@ typedef struct Ekf_config
 
 static Ekf_config_t ekf_config = {
     .initialState = {},
-    .initialCovariance = {},
+    .initialCovariance = {{2e-7, 0, 0, 0, 0, 0}, {0, 2e-7, 0, 0, 0, 0}, {0, 0, 2e-7, 0, 0, 0}, {0, 0, 0, 2e-3, 0, 0}, {0, 0, 0, 0, 2e-3, 0}, {0, 0, 0, 0, 0, 2e-3}}, //[[eye(3)*0.00001^2 zeros(3)];[zeros(3) eye(3)*0.001^2]]*2000
     .processNoise = {{1e-8, 0, 0, 0, 0, 0}, {0, 1e-8, 0, 0, 0, 0}, {0, 0, 1e-8, 0, 0, 0}, {0, 0, 0, 1e-6, 0, 0}, {0, 0, 0, 0, 1e-6, 0}, {0, 0, 0, 0, 0, 1e-6}},
     .minimumProcessNoise = {{1e-8, 0, 0, 0, 0, 0}, {0, 1e-8, 0, 0, 0, 0}, {0, 0, 1e-8, 0, 0, 0}, {0, 0, 0, 1e-6, 0, 0}, {0, 0, 0, 0, 1e-6, 0}, {0, 0, 0, 0, 0, 1e-6}},
     .measurementNoise = {{0.01, 0, 0}, {0, 0.01, 0}, {0, 0, 0.01}},

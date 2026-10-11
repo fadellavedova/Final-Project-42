@@ -55,7 +55,7 @@ void cssProcessing(struct AcType *AC)
       for (Ic = 0; Ic < AC->Ncss; Ic++)
       {
          Css = &AC->CSS[Ic];
-         if (Css->Illum > config->eclipse_threshold)
+         if (Css->Illum / Css->Scale > config->eclipse_threshold)
          {
             Nvalid++;
             /* Normal equations, assuming Nvalid will end up > 2 */
@@ -259,11 +259,14 @@ int adcsNadirPointing(struct AcType *AC, AcConfig_t *config)
       {
          u[i] = -kw * eps * d_component[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law
       }
-      CrossProduct(AC->svb, u, m); // Compute the magnetic moment command for sun pointing
+      CrossProduct(AC->bvb, u, m); // Compute the magnetic moment command for sun pointing
       Matrix3Vector_trunc(EYE, (AC->ekf)->x, aux, 3, 6);
       for (size_t i = 0; i < 3; i++)
       {
-         m[i] = (m[i] / (b_norm * b_norm)) - aux[i]; // Normalize the magnetic moment command
+         m[i] = (m[i] / (b_norm * b_norm)); // Normalize the magnetic moment command
+         if(config->rmm_compensate) {
+            m[i] -= aux[i];
+         }
          AC->Mcmd[i] = m[i];
       }
    }
@@ -332,7 +335,7 @@ int adcsSunPointing(struct AcType *AC, AcConfig_t *config)
       }
       else
       {  
-
+         printf("In eclipse\n");
          kw = config->kw_sunpointing_eclipse;
          eps = config->eps_sunpointing_eclipse;
 
@@ -348,11 +351,17 @@ int adcsSunPointing(struct AcType *AC, AcConfig_t *config)
       {
          u[i] = -kw * eps * d_component[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law  u = u - obj.eps*obj.eps*obj.k_p*inv(obj.iner)*dq*signq4;
       }
-      CrossProduct(AC->svb, u, m); // Compute the magnetic moment command for sun pointing
+      CrossProduct(AC->bvb, u, m); // Compute the magnetic moment command for sun pointing
       Matrix3Vector_trunc(EYE, (AC->ekf)->x, aux, 3, 6);
       for (size_t i = 0; i < 3; i++)
       {
-         m[i] = (m[i] / (b_norm * b_norm)) - aux[i];
+         m[i] = (m[i] / (b_norm * b_norm));
+         if(config->rmm_compensate) {
+            m[i] -= aux[i];
+         }
+         if(m[i] > config->max_dipole) {
+            m[i] = (m[i] / abs(m[i]))*config->max_dipole;
+         }
          AC->Mcmd[i] = m[i];
       }
    }

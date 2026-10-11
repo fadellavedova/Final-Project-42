@@ -1478,8 +1478,8 @@ void MtqFSW(struct AcType *AC)
 {
       GyroProcessing2(AC);
       MagnetometerProcessing2(AC);
-      CssProcessing2(AC);
-   HorizonProcessing2(AC);
+      cssProcessing(AC);
+      HorizonProcessing2(AC);
 
       adcsUBA(AC);
 

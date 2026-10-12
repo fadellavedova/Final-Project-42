@@ -10,3 +10,4 @@ Rx/*.42
 Tx/*.42
 MTQSAT/mission.m
 MTQSAT/*.42
+.venv

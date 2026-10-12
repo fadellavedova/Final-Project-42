@@ -1,5 +1,5 @@
 #ifndef INC_TESTFSW_ADCS_H
-#define INC_TESTSW_ADCS_H
+#define INC_TESTFSW_ADCS_H
 
 #include "adcs/magsun.h"
 

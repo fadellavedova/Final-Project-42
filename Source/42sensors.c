@@ -556,17 +556,51 @@ void FgsModel(struct SCType *S)
          
 }
 /**********************************************************************/
+void EhsModel(struct SCType *S)
+{
+      struct EhsType *EHS;
+      struct AcType *AC;
+      double evn[3],evb[3],evs[3];
+      long i, ie;
+      
+      AC = &S->AC;
+
+      for(ie = 0; ie < S->Nehs; ie++) {
+         EHS = &S->EHS[ie];
+         EHS->SampleCounter++;
+         if (EHS->SampleCounter >= EHS->MaxCounter) {
+            EHS->SampleCounter = 0;
+            for (i=0;i<3;i++) evn[i] = -S->PosN[i];
+            UNITV(evn);
+            MxV(S->B[0].CN,evn,evb);
+            /* Rotate body-frame nadir into sensor frame using per-spacecraft mount */
+            MxV(S->EHS[0].CB,evb,evs);
+            if (evs[2] > 0.866) {
+               AC->ES.Valid = TRUE;
+               AC->ES.Roll = evs[1];
+               AC->ES.Pitch = -evs[0];
+            }
+            else {
+               AC->ES.Valid = FALSE;
+               AC->ES.Roll = 0.0;
+               AC->ES.Pitch = 0.0;
+            }
+         }
+      }
+}
+/**********************************************************************/
 /*  This function is called at the simulation rate.  Sub-sampling of  */
 /*  sensors should be done on a case-by-case basis.                   */
 void Sensors(struct SCType *S)
 {
 
-      double evn[3],evb[3];
+      double evn[3],evb[3],evs[3];
       long i,j,k,DOF;
       struct AcType *AC;
       struct JointType *G;
 
       AC = &S->AC;
+      struct EhsType *EHS = S->EHS;
       
       /* Ephemeris */
       AC->EphValid = 1;
@@ -640,20 +674,9 @@ void Sensors(struct SCType *S)
       }
       
       /* Earth Sensor */
-      for (i=0;i<3;i++) evn[i] = -S->PosN[i];
-      UNITV(evn);
-      MxV(S->B[0].CN,evn,evb);
-      if (evb[2] > 0.866) {
-         AC->ES.Valid = TRUE;
-         AC->ES.Roll = evb[1];
-         AC->ES.Pitch = -evb[0];
+      if (S->Nehs > 0) {
+         EhsModel(S);
       }
-      else {
-         AC->ES.Valid = FALSE;
-         AC->ES.Roll = 0.0;
-         AC->ES.Pitch = 0.0;
-      }
-
       /* Gimbal Angles */
       for (i=0;i<AC->Ng;i++) {
          G = &S->G[i];

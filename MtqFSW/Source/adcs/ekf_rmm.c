@@ -31,6 +31,7 @@ int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
    case AC_MODE_DETUMBLE:
       velocityGain = config_ac->kw_detumb;
       epsilon = config_ac->eps_detumb;
+      break;
    case AC_MODE_SUN_POINTING:
       if (!AC->SunValid)
       {
@@ -42,6 +43,7 @@ int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
          velocityGain = config_ac->kw_sunpointing;
          epsilon = config_ac->eps_sunpointing;
       }
+      break;
    case AC_MODE_NADIR_POINTING:
       if (!AC->ES.Valid)
       {
@@ -53,6 +55,7 @@ int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
          velocityGain = config_ac->kw_nadirpointing;
          epsilon = config_ac->eps_nadirpointing;
       }
+      break;
    }
 
    double (*inertia)[3] = config_ac->J;
@@ -62,7 +65,7 @@ int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
    double *angularRateMeasurement = AC->wbn;
    double dt = AC->DT;
    struct RmmEkf *ekf = AC->ekf;
-   
+
    double angularMomentum[3];
    double commandTorque[3];
    double residualTorque[3];

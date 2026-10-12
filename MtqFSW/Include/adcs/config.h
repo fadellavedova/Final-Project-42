@@ -40,8 +40,8 @@ typedef struct AcConfig
 // Poner todas las configs del sistema de control (parametros, thresholds, etc.) capaz se puede hacer otro tipo de config para el EKF(?)
 
 static AcConfig_t ac_config = {
-    .detumble_angular_velocity_threshold_low = 0.01,
-    .detumble_angular_velocity_threshold_high = 0.6,
+    .detumble_angular_velocity_threshold_low = 0.005,
+    .detumble_angular_velocity_threshold_high = 0.06,
 
     .kw_detumb = 0.33,
     .eps_detumb = 0.01,
@@ -68,7 +68,7 @@ static AcConfig_t ac_config = {
     .nadir_pointing_vector = {0.0, 0.0, 1.0}, // +Z to nadir
     .sun_pointing_vector = {0.0, 0.0, -1.0},    // -Z to sun
 
-    .eclipse_threshold = 0.5,
+    .eclipse_threshold = 0.2,
     .magnetic_field_min = 1e-6,
     .rmm_compensate = 0,
     .max_dipole = 0.2
@@ -89,11 +89,11 @@ typedef struct Ekf_config
 static Ekf_config_t ekf_config = {
     .initialState = {},
     .initialCovariance = {{2e-7, 0, 0, 0, 0, 0}, {0, 2e-7, 0, 0, 0, 0}, {0, 0, 2e-7, 0, 0, 0}, {0, 0, 0, 2e-3, 0, 0}, {0, 0, 0, 0, 2e-3, 0}, {0, 0, 0, 0, 0, 2e-3}}, //[[eye(3)*0.00001^2 zeros(3)];[zeros(3) eye(3)*0.001^2]]*2000
-    .processNoise = {{1e-8, 0, 0, 0, 0, 0}, {0, 1e-8, 0, 0, 0, 0}, {0, 0, 1e-8, 0, 0, 0}, {0, 0, 0, 1e-6, 0, 0}, {0, 0, 0, 0, 1e-6, 0}, {0, 0, 0, 0, 0, 1e-6}},
-    .minimumProcessNoise = {{1e-8, 0, 0, 0, 0, 0}, {0, 1e-8, 0, 0, 0, 0}, {0, 0, 1e-8, 0, 0, 0}, {0, 0, 0, 1e-6, 0, 0}, {0, 0, 0, 0, 1e-6, 0}, {0, 0, 0, 0, 0, 1e-6}},
-    .measurementNoise = {{0.01, 0, 0}, {0, 0.01, 0}, {0, 0, 0.01}},
+    .processNoise = {{1e-9, 0, 0, 0, 0, 0}, {0, 1e-9, 0, 0, 0, 0}, {0, 0, 1e-9, 0, 0, 0}, {0, 0, 0, 1e-7, 0, 0}, {0, 0, 0, 0, 1e-7, 0}, {0, 0, 0, 0, 0, 1e-7}},
+    .minimumProcessNoise = {{1e-9, 0, 0, 0, 0, 0}, {0, 1e-9, 0, 0, 0, 0}, {0, 0, 1e-9, 0, 0, 0}, {0, 0, 0, 1e-7, 0, 0}, {0, 0, 0, 0, 1e-7, 0}, {0, 0, 0, 0, 0, 1e-7}},
+    .measurementNoise = {{0.5, 0, 0}, {0, 0.5, 0}, {0, 0, 0.5}},
     .J =  {{0.0021, 0, 0}, {0, 0.0018, 0}, {0, 0, 0.002}},
-    .alpha = 0.001f
+    .alpha = 0.01f
 };
 
 AcConfig_t *GetAcConfig();

@@ -335,7 +335,6 @@ int adcsSunPointing(struct AcType *AC, AcConfig_t *config)
       }
       else
       {  
-         printf("In eclipse\n");
          kw = config->kw_sunpointing_eclipse;
          eps = config->eps_sunpointing_eclipse;
 

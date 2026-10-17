@@ -3,7 +3,7 @@ Small Cubesat                 !  Description
 "UBA"                         !  Label
 GenScSpriteAlpha.ppm          !  Sprite File Name
 MTQ_FSW                      !  Flight Software Identifier
-0.5                           !  FSW Sample Time, sec
+1.0                           !  FSW Sample Time, sec
 ************************* Orbit Parameters ****************************
 ENCKE                         !  Orbit Prop FIXED, EULER_HILL, or ENCKE
 CM                            !  Pos of CM or ORIGIN, wrt F
@@ -32,7 +32,7 @@ NONE                          ! Shaker File Name
 0.0  0.0  0.0                 ! Products of Inertia (xy,xz,yz)
 0.0003  -0.0012  0.004        ! Location of mass center, m 
 0.0  0.0  0.0                 ! Constant Embedded Momentum (Nms)
-0.001  0.001   0.001          ! Constant Embedded Magnetic Dipole (A-m^2)
+0.001  -0.001   0.001         ! Constant Embedded Magnetic Dipole (A-m^2)
 usat1.obj                     ! Geometry Input File Name
 NONE                          ! Node File Name
 NONE                          ! Flex File Name
@@ -96,33 +96,33 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 1.0                           ! Sample Time,sec
 1.0  0.0  0.0                 ! Axis expressed in Body Frame
 200                           ! Max Rate, deg/sec
-100.0                         ! Scale Factor Error, ppm
+2000.0                         ! Scale Factor Error, ppm
 1.0                           ! Quantization, arcsec 
 0.03                          ! Angle Random Walk (deg/rt-hr)
 0.8  1.0                      ! Bias Stability (deg/hr) over timespan (hr)
-0.1                           ! Angle Noise, arcsec RMS
+2.52                          ! Angle Noise, arcsec RMS
 360                           ! Initial Bias (deg/hr)
 0                             ! Node
 ============================== Axis 1 ===================================
 1.0                           ! Sample Time,sec
 0.0  1.0  0.0                 ! Axis expressed in Body Frame
 200                           ! Max Rate, deg/sec
-100.0                         ! Scale Factor Error, ppm
+2000.0                         ! Scale Factor Error, ppm
 1.0                           ! Quantization, arcsec 
 0.03                          ! Angle Random Walk (deg/rt-hr)
 0.8  1.0                      ! Bias Stability (deg/hr) over timespan (hr)
-0.1                           ! Angle Noise, arcsec RMS
+2.52                          ! Angle Noise, arcsec RMS
 360                           ! Initial Bias (deg/hr)
 0                             ! Node
 ============================== Axis 2 ===================================
 1.0                           ! Sample Time,sec
 0.0  0.0  1.0                 ! Axis expressed in Body Frame
 200                           ! Max Rate, deg/sec
-100.0                         ! Scale Factor Error, ppm
+2000.0                         ! Scale Factor Error, ppm
 1.0                           ! Quantization, arcsec 
 0.03                          ! Angle Random Walk (deg/rt-hr)
 0.8  1.0                      ! Bias Stability (deg/hr) over timespan (hr)
-0.1                           ! Angle Noise, arcsec RMS
+2.52                          ! Angle Noise, arcsec RMS
 360                           ! Initial Bias (deg/hr)
 0                             ! Node
 *************************** Magnetometer ********************************

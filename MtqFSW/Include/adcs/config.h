@@ -70,7 +70,7 @@ static AcConfig_t ac_config = {
 
     .eclipse_threshold = 0.2,
     .magnetic_field_min = 1e-6,
-    .rmm_compensate = 0,
+    .rmm_compensate = 1,
     .max_dipole = 0.2
 
 };

@@ -20,7 +20,7 @@ int ExitNominal(struct AcType *AC, AcConfig_t *config)
                       AC->wbn[1]*AC->wbn[1] +
                       AC->wbn[2]*AC->wbn[2]);
 
-    return wmag < config->detumble_angular_velocity_threshold_high;
+    return wmag > config->detumble_angular_velocity_threshold_high;
 
 }
 

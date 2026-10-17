@@ -14,6 +14,7 @@ int adcsMagSunUBA(struct AcType *AC);
 int adcsRwTriadTLEUBA(struct AcType *AC);
 
 int adcsUBA(struct AcType *AC);
+void cssProcess(struct AcType *AC);
 
 
 #endif

@@ -921,6 +921,11 @@ void CrossProduct(const double left[3], const double right[3],
    result[2] = left[0] * right[1] - left[1] * right[0];
 }
 
+double DotProduct(const double left[3], const double right[3])
+{
+   return left[0]*right[0] + left[1]*right[1] + left[2]*right[2]; 
+}
+
 void Skew(const double vector[3], double matrix[3][3])
 {
    matrix[0][0] = 0.0;

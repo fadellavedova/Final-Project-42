@@ -93,6 +93,7 @@ def build_figures(data):
         ("bvb", "Magnetic field in body frame", "microtesla", 3, 1e6, "Processed magnetometers"),
         ("posn", "Inertial position", "km", 3, 1e-3, "FSW ephemeris"),
         ("veln", "Inertial velocity", "km/s", 3, 1e-3, "FSW ephemeris"),
+        ("nadir_b", "Nadir vector in body frame", "Unit vector", 3, 1, "EHS-derived estimate"),
     ):
         passthrough = {"wbn": "gyro", "qbn": "attitude", "posn": "ephem", "veln": "ephem"}.get(prefix)
         if passthrough and np.any(data.get(f"{passthrough}_truth_passthrough", np.zeros(len(time)))):
@@ -156,6 +157,16 @@ def build_figures(data):
             axes[1].plot(time, error, label="Quaternion separation (q and -q equivalent)")
         axes[1].set_ylabel("degrees")
         finish(figure, axes, "Estimation and pointing errors")
+
+    if "nadir_err_deg" in data:
+        figure, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 6), layout="constrained")
+        axes[0].plot(time, data["nadir_err_deg"], label="Nadir knowledge error (FSW vs truth)")
+        axes[0].set_ylabel("degrees")
+        if "fsw_horizon_valid" in data:
+            axes[1].step(time, data["fsw_horizon_valid"], where="post", label="FSW horizon valid")
+            axes[1].set_ylim(-0.1, 1.1)
+            axes[1].set_yticks([0, 1])
+        finish(figure, axes, "Nadir error and horizon sensor validity")
 
     state = vector(data, "ekf_state", 6)
     if state is not None:

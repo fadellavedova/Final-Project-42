@@ -45,7 +45,7 @@ int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
       }
       break;
    case AC_MODE_NADIR_POINTING:
-      if (!AC->ES.Valid)
+      if (!AC->EarthValid)
       {
          velocityGain = config_ac->kw_nadirpointing_nohorizon;
          epsilon = config_ac->eps_nadirpointing_nohorizon;

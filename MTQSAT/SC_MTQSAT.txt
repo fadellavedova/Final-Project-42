@@ -257,5 +257,7 @@ X_AXIS                      ! Boresight Axis X_AXIS, Y_AXIS, or Z_AXIS
 2                           ! Sample Time, sec
 30                          ! Mount Angle Around X+
 45                          ! FOV Half Angle
+0.3                         ! Noise (1 sigma) [deg]
+14                          ! Max Slew Rate [deg/s]
 0                           ! Body
 0                           ! Node

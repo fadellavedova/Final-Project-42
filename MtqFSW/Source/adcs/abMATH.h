@@ -30,6 +30,7 @@ void rad_a_q(double *pq0, double *pq1, double *pq2, double *pq3, double rotacion
 void getCd(double vpoint[4], double Cd[4][4]);
 void pVec(double v1[], double v2[], double v3[]);
 void CrossProduct(const double left[3], const double right[3], double result[3]);
+double DotProduct(const double left[3], const double right[3]);
 void Skew(const double vector[3], double matrix[3][3]);
 void Matrix3Vector(const double matrix[3][3], const double vector[3], double result[3]);
 int Matrix3Vector_trunc(const double matrix[3][3], const double *vector, double result[3], int i, int j);

@@ -375,6 +375,7 @@ struct AcType {
    long Nst;
    long Ngps;
    long Nacc;
+   long Nehs;
    
    double Pi;
    double TwoPi;
@@ -397,12 +398,14 @@ struct AcType {
    double svb[3]; /* [~<~] */
    double bvn[3];
    double bvb[3]; /* [~<~] */
+   double nvb[3]; /* nadir vector en body frame */
    double PosN[3];
    double VelN[3];
    long SunValid;
    long MagValid;
    long EphValid;
    long StValid;
+   long EarthValid;
    
    /*~ Outputs ~*/
    long ReqMode;
@@ -435,7 +438,7 @@ struct AcType {
    struct AcStarTrackerType *ST;   /* [*Nst*] */
    struct AcGpsType *GPS;          /* [*Ngps*] */
    struct AcAccelType *Accel;      /* [*Nacc*] */
-   struct AcEarthSensorType ES;
+   struct AcEarthSensorType *EHS;   /* [*Nes*]*/
    
    /* Actuators */
    struct AcWhlType *Whl; /* [*Nwhl*] */

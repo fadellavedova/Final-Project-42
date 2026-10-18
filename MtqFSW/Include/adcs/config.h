@@ -10,6 +10,7 @@ typedef struct AcConfig
     double J[3][3];
     double inv_J[3][3];
 
+    //Gains
     double kw_detumb;
     double eps_detumb;
 
@@ -28,13 +29,19 @@ typedef struct AcConfig
     double kp_nadirpointing_nohorizon;
     double eps_nadirpointing_nohorizon;
 
+    // References
     double nadir_pointing_vector[3]; // Desired nadir pointing vector in body frame
     double sun_pointing_vector[3];   // Desired sun pointing vector in body frame
 
+    // Popurri
     float eclipse_threshold; // Threshold for eclipse detection
     float magnetic_field_min;
     int rmm_compensate;
     float max_dipole;
+
+    // EHS
+    double S2BMatrix[3][3];
+
 } AcConfig_t;
 
 // Poner todas las configs del sistema de control (parametros, thresholds, etc.) capaz se puede hacer otro tipo de config para el EKF(?)
@@ -71,8 +78,11 @@ static AcConfig_t ac_config = {
     .eclipse_threshold = 0.2,
     .magnetic_field_min = 1e-6,
     .rmm_compensate = 1,
-    .max_dipole = 0.2
+    .max_dipole = 0.2,
 
+    .S2BMatrix = {{1.0, 0.0, 0.0},
+                  {0.0, 0.866, -0.5},
+                  {0.0, 0.5, 0.866}}
 };
 
 typedef struct Ekf_config

@@ -2736,7 +2736,7 @@ void InitSpacecraft(struct SCType *S)
       if (S->Nehs == 0) {
          /* Skip 6 lines for each uninstantiated sensor to maintain file alignment */
          if (HasEhsSection) {
-            for(i=0;i<6;i++) fscanf(infile,"%[^\n] %[\n]",junk,&newline);
+            for(i=0;i<8;i++) fscanf(infile,"%[^\n] %[\n]",junk,&newline);
          }
       }
       else {
@@ -2774,8 +2774,13 @@ void InitSpacecraft(struct SCType *S)
             fscanf(infile,"%lf %[^\n] %[\n]",&EHS->FovHalfAng,junk,&newline);
             EHS->FovHalfAng *= D2R;
             EHS->CosFov = cos(EHS->FovHalfAng);
+
+            fscanf(infile,"%lf %[^\n] %[\n]",&EHS->Noise,junk,&newline);  
+            EHS->Noise *= D2R;
+
+            fscanf(infile,"%lf %[^\n] %[\n]",&EHS->MaxSlew,junk,&newline);  
+            EHS->MaxSlew *= D2R;
             
-            /* 5 & 6. Structural Mounting (Body and Node) */
             fscanf(infile,"%ld %[^\n] %[\n]",&EHS->Body,junk,&newline);
             fscanf(infile,"%ld %[^\n] %[\n]",&EHS->Node,junk,&newline);
             if (EHS->Node >= S->B[EHS->Body].NumNodes) {

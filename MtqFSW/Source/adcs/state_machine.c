@@ -36,10 +36,15 @@ void UpdateMode(struct AcType *AC, AcConfig_t *config)
 
     enum AcMode currentMode = mode[AC->ID];
 
-    if (AC->ReqMode != currentMode && AC->ReqMode > 0) {
+    if (AC->ReqMode != currentMode && AC->ReqMode >= 0) {
         currentMode = (enum AcMode)AC->ReqMode;
         mode[AC->ID] = currentMode;
-        AC->ReqMode = 0;
+        AC->ReqMode = -1;
+        return;
+    }
+    if (AC->ReqMode >= 0) {
+        mode[AC->ID] = (enum AcMode) AC->ReqMode;
+        AC->ReqMode = -1;
         return;
     }
 

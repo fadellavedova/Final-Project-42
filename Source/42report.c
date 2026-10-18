@@ -192,6 +192,10 @@ static void FswComparisonReport(struct SCType *spacecraft)
       double residualDipole[3] = {0.0,0.0,0.0};
       double dipoleN[3],dipoleB[3],sensorSun[3],directIllum;
       char prefix[80];
+      double nadirTruthB[3] = {0.0,0.0,0.0};
+      double nadirFswB[3]   = {0.0,0.0,0.0};
+      double nadirErrDeg    = 0.0;
+      double nadirN[3],CBN[3][3],mag,dot;
 
       if (OutFlag) {
          if (!file) {
@@ -217,6 +221,9 @@ static void FswComparisonReport(struct SCType *spacecraft)
             ComparisonHeader(file,"truth_residual_dipole",3);
             ComparisonHeader(file,"ekf_state",6);
             ComparisonHeader(file,"ekf_variance",6);
+            ComparisonHeader(file,"truth_nadir_b",3);
+            ComparisonHeader(file,"fsw_nadir_b",3);        
+            fprintf(file,",nadir_err_deg");                
             for(sensor=0;sensor<spacecraft->Ncss;sensor++) {
                fprintf(file,",css_%ld_ideal_direct,css_%ld_illum,css_%ld_albedo,"
                   "css_%ld_valid,css_%ld_fsw_illum,css_%ld_fsw_valid,"
@@ -252,10 +259,32 @@ static void FswComparisonReport(struct SCType *spacecraft)
             for(component=0;component<3;component++)
                residualDipole[component] += dipoleB[component];
          }
+         /* Nadir real en ejes del cuerpo */
+         mag = MAGV(spacecraft->PosN);
+         if (mag > 0.0) {
+            for(component=0;component<3;component++)
+               nadirN[component] = -spacecraft->PosN[component]/mag;
+            MxV(spacecraft->B[0].CN,nadirN,nadirTruthB);
+         }
+
+         /* Nadir según FSW*/
+         mag = MAGV(ac->PosN);
+         if (mag > 0.0) {
+            for(component=0;component<3;component++)
+               nadirFswB[component] = ac->nvb[component];
+         }
+
+         /* Ángulo entre ambos [deg] */
+         if (!isnan(nadirTruthB[0]) && !isnan(nadirFswB[0])) {
+            dot = VoV(nadirTruthB,nadirFswB);
+            if (dot >  1.0) dot =  1.0;
+            if (dot < -1.0) dot = -1.0;
+            nadirErrDeg = acos(dot)*R2D;
+         }
          fprintf(file,"%.12le,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%ld,%d,%d,%d,%ld,%.12le",
             SimTime,spacecraft->Eclipse,ac->SunValid,(long) !ac->SunValid,
             ac->ekf ? (long) GetCurrentMode(ac) : 0L,
-            ac->MagValid,ac->EphValid,ac->StValid,ac->ES.Valid,
+            ac->MagValid,ac->EphValid,ac->StValid,ac->EarthValid,
             spacecraft->Ngyro==0,spacecraft->Nst==0,spacecraft->Ngps==0,
             ekfValid,(double) config->eclipse_threshold);
          ComparisonVector(file,spacecraft->svb,3);
@@ -275,6 +304,9 @@ static void FswComparisonReport(struct SCType *spacecraft)
          ComparisonVector(file,residualDipole,3);
          ComparisonVector(file,ekfState,6);
          ComparisonVector(file,ekfVariance,6);
+         ComparisonVector(file,nadirTruthB,3);
+         ComparisonVector(file,nadirFswB,3);
+         fprintf(file,",%.12le",nadirErrDeg);
          for(sensor=0;sensor<spacecraft->Ncss;sensor++) {
             MxV(spacecraft->B[spacecraft->CSS[sensor].Body].CN,spacecraft->svn,sensorSun);
             directIllum = VoV(sensorSun,spacecraft->CSS[sensor].Axis);

@@ -447,7 +447,8 @@ struct EhsType {
    double CB[3][3];
    double FovHalfAng;
    double CosFov;
-   double Quant;
+   double Noise;
+   double MaxSlew;
    long Node;
 };
 

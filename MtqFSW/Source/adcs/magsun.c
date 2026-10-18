@@ -110,27 +110,39 @@ void cssProcessing(struct AcType *AC)
 
 void esProcessing(struct AcType *AC) // FUNCION: tiene que calcular el vecornadir a partir de los datos Roll y Pitch YA CALCULADOS en el modelo de sensor
 {
-   struct AcEarthSensorType *ES = &AC->ES;
+   AcConfig_t *config = GetAcConfig();
+   struct AcEarthSensorType *ES;
    double Roll, Pitch;
+   int Nvalid = 0;
+   double invalidNV[3] = {0.0, 0.0, 0.0};
+   double nvs[3] = {0.0, 0.0, 0.0};
+   double nvb[3] = {0.0, 0.0, 0.0};
 
-   if (AC->Nst == 0)
-   {
-      /* AC->qbn populated by true S->B[0].qn in 42sensors.c */
-      /* AC->CBN populated by true S->B[0].CBN in 42sensors.c */
-      /* AC->CLN populated by true S->B[0].CLN in 42sensors.c */
+   for(long i = 0; i < AC->Nehs; i++){
+      ES = &AC->EHS[i];
+      if(ES->Valid) {
+         Nvalid++;
+         nvs[0] += sin(ES->Pitch) * cos(ES->Roll);
+         nvs[1] += sin(ES->Pitch) * sin(ES->Roll);
+         nvs[2] += cos(ES->Pitch);         
+      } 
    }
-   else
+
+   if (AC->Nehs == 0 || Nvalid == 0)
    {
-      /* AC->qbn populated by true S->B[0].qn in 42sensors.c */
-      /* AC->CBN populated by true S->B[0].CBN in 42sensors.c */
-      /* AC->CLN populated by true S->B[0].CLN in 42sensors.c */
+      for(int i = 0; i < 3; i++){
+         AC->nvb[i] = invalidNV[i];
+      }
+      AC->EarthValid = FALSE;
+      return;
    }
-
-   Roll = atan2(AC->CLN[2][1], AC->CLN[2][2]);
-   Pitch = -asin(AC->CLN[2][0]);
-
-   ES->Roll = Roll;
-   ES->Pitch = Pitch;
+   if (Nvalid > 0) {
+      AC->EarthValid = TRUE;
+      Matrix3Vector(config->S2BMatrix, nvs, nvb);
+      for(int i = 0; i < 3; i++) {
+         AC->nvb[i] = nvb[i]/Nvalid;
+      }
+   }
 }
 
 /* ********************************************************************

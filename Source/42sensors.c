@@ -561,29 +561,42 @@ void EhsModel(struct SCType *S)
       struct EhsType *EHS;
       struct AcType *AC;
       double evn[3],evb[3],evs[3];
+      static double roll, pitch = 0;
+      double wmag;
       long i, ie;
+      static long valid = 0;
       
       AC = &S->AC;
 
       for(ie = 0; ie < S->Nehs; ie++) {
+         // Obtenemos la medicion de la iteracion previa (se simula delay de tiempo de muestreo)
+         (AC->EHS)->Roll = roll;
+         (AC->EHS)->Pitch = pitch;
+         (AC->EHS)->Valid = valid;
+         // Modelo
          EHS = &S->EHS[ie];
          EHS->SampleCounter++;
          if (EHS->SampleCounter >= EHS->MaxCounter) {
-            EHS->SampleCounter = 0;
+            EHS->SampleCounter = 0;      
+            double wmag = MAGV(S->B[0].wn); 
             for (i=0;i<3;i++) evn[i] = -S->PosN[i];
             UNITV(evn);
             MxV(S->B[0].CN,evn,evb);
             /* Rotate body-frame nadir into sensor frame using per-spacecraft mount */
-            MxV(S->EHS[0].CB,evb,evs);
-            if (evs[2] > 0.866) {
-               AC->ES.Valid = TRUE;
-               AC->ES.Roll = evs[1];
-               AC->ES.Pitch = -evs[0];
+            MxV(EHS->CB,evb,evs);
+            if (evs[2] > EHS->CosFov) {
+               pitch  =  acos(evs[2]);
+               roll = atan2(evs[1], evs[0]);
+
+               roll  += EHS->Noise * (1.0 + (wmag/EHS->MaxSlew)*(wmag/EHS->MaxSlew)) * GaussianRandom(RNG);
+               pitch += EHS->Noise * (1.0 + (wmag/EHS->MaxSlew)*(wmag/EHS->MaxSlew)) * GaussianRandom(RNG);
+
+               valid = TRUE;
             }
             else {
-               AC->ES.Valid = FALSE;
-               AC->ES.Roll = 0.0;
-               AC->ES.Pitch = 0.0;
+               valid = FALSE;
+               roll = 0.0;
+               pitch = 0.0;
             }
          }
       }

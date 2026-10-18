@@ -907,6 +907,13 @@ void InitAC(struct SCType *S)
          }
       }
 
+      /* Earth Horizon Sensors */
+      AC->Nehs = S->Nehs;
+      if (AC->Nehs > 0) {
+         AC->EHS = (struct AcEarthSensorType *) calloc(AC->Nehs,sizeof(struct AcEarthSensorType));
+      }
+      
+
       /* Wheels */
       AC->Nwhl = S->Nw;
       if (AC->Nwhl > 0) {
@@ -1463,23 +1470,13 @@ void MtbProcessing2(struct AcType *AC)
 /*  End Actuator Processing Functions                                 */
 /**********************************************************************/
 
-/* Roll y Pitch son los errores angulares de apuntamiento del AcEarthSensorType en AcTypes.h */
-void HorizonProcessing2(struct AcType *AC)
-{
-   if (!AC->ES.Valid || !isfinite(AC->ES.Roll)
-      || !isfinite(AC->ES.Pitch)) {
-      AC->ES.Valid = FALSE;
-      AC->ES.Roll = 0.0;
-      AC->ES.Pitch = 0.0;
-   }
-}
 
 void MtqFSW(struct AcType *AC)
 {
       GyroProcessing2(AC);
       MagnetometerProcessing2(AC);
       cssProcessing(AC);
-      HorizonProcessing2(AC);
+      esProcessing(AC);
 
       adcsUBA(AC);
 
@@ -1607,7 +1604,7 @@ void MomBiasFSW(struct SCType *S)
          C->Init = 0;
       }
 
-      if (!AC->ES.Valid) {  /* Bdot Acquisition */
+      if (!AC->EarthValid) {  /* Bdot Acquisition */
 
          AC->Whl[0].Tcmd = -Kry*(AC->Whl[0].H-Hwcmd);
          for(i=0;i<3;i++) {
@@ -1624,11 +1621,11 @@ void MomBiasFSW(struct SCType *S)
 
          /* Pitch Loop */
          PitchRateError = AC->wbn[1]-PitchRateCmd;
-         PitchTcmd = -Kry*PitchRateError-Kpy*AC->ES.Pitch;
+         PitchTcmd = -Kry*PitchRateError-Kpy*(AC->EHS)->Pitch;
          AC->Whl[0].Tcmd = -PitchTcmd-Kunl*(AC->Whl[0].H-Hwcmd);
 
          /* Roll-Yaw Loop */
-         Tcmd[0] = -Krx*AC->wbn[0]-Kpx*AC->ES.Roll;
+         Tcmd[0] = -Krx*AC->wbn[0]-Kpx*(AC->EHS)->Roll;
          Tcmd[2] = -0.5*Tcmd[0];
 
          /* Wheel Unload */

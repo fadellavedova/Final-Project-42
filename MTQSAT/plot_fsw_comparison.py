@@ -93,7 +93,7 @@ def build_figures(data):
         ("bvb", "Magnetic field in body frame", "microtesla", 3, 1e6, "Processed magnetometers"),
         ("posn", "Inertial position", "km", 3, 1e-3, "FSW ephemeris"),
         ("veln", "Inertial velocity", "km/s", 3, 1e-3, "FSW ephemeris"),
-        ("nadir_b", "Nadir vector in body frame", "Unit vector", 3, 1, "FSW attitude + ephemeris"),
+        ("nadir_b", "Nadir vector in body frame", "Unit vector", 3, 1, "EHS-derived estimate"),
     ):
         passthrough = {"wbn": "gyro", "qbn": "attitude", "posn": "ephem", "veln": "ephem"}.get(prefix)
         if passthrough and np.any(data.get(f"{passthrough}_truth_passthrough", np.zeros(len(time)))):

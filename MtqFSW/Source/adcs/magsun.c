@@ -169,9 +169,10 @@ void esProcessing(struct AcType *AC) // FUNCION: tiene que calcular el vecornadi
    Se puede tener el objeto filtro dentro del AC y llamarlo desde ahí? Lo inicializamos en la primera iteracion con un static int que despues vaya a 0
 */
 
-int adcsDetumbling(struct AcType *AC, AcConfig_t *config)
+int adcsDetumbling(struct AcType *AC)
 {
    // Detumbling Control Algorithm
+   AcConfig_t *config = GetAcConfig();
 
    double b_norm = Norm3Vector(AC->bvb);
    double (*J)[3] = config->J;
@@ -205,180 +206,186 @@ int adcsDetumbling(struct AcType *AC, AcConfig_t *config)
    return 0; // Return 0 to indicate successful execution
 }
 
-int adcsNadirPointing(struct AcType *AC, AcConfig_t *config)
+int adcsNadirPointing(struct AcType *AC, int *saw_horizon)
 {
    // Nadir Pointing Control Algorithm
+   AcConfig_t *config = GetAcConfig();
 
    double b_norm = Norm3Vector(AC->bvb);
-   if (b_norm > 1e-12)
-   {
+   if (b_norm < 1e-9) {
+      return 1;
+   }
 
-      double (*J)[3] = config->J;
-      double (*inverse_J)[3] = config->inv_J;
-      double d_component[3];
-      double p_component[3];
-      double u[3];
-      double m[3];
-      double qs[3];
-      double qs0;
-      double angle;
-      double qs_norm;
-      static int init_sp_loop = 1; // Sign of the scalar part of the quaternion representing the sun pointing error
-      int signqs0 = 1;
-      double kw = config->kw_nadirpointing;
-      double kp = config->kp_nadirpointing;
-      double eps = config->eps_nadirpointing;
-      double aux[3];
+   double (*J)[3] = config->J;
+   double (*inverse_J)[3] = config->inv_J;
+   double d_component[3];
+   double p_component[3];
+   double u[3];
+   double m[3];
+   double qs[3];
+   double qs0;
+   double angle;
+   double qs_norm;
+   static double nvb[3];
+   static int init_sp_loop = 1; // Sign of the scalar part of the quaternion representing the sun pointing error
+   static int signqs0 = 1;
+   double kw = config->kw_nadirpointing_nohorizon;
+   double kp = config->kp_nadirpointing_nohorizon;
+   double eps = config->eps_nadirpointing_nohorizon;
+   double aux[3];
 
-      if (Norm3Vector(AC->svb) > 0)
-      {                                                            // Poner acá la condicion de nadir
-         CrossProduct(AC->svb, config->nadir_pointing_vector, qs); // Compute the nadir vector error
-         qs_norm = Norm3Vector(qs);
-         angle = asin(qs_norm);
-         qs0 = cos(angle / 2.);
-         if (qs_norm > 1e-12)
+   // Espera a ver por primera vez el horizonte (capaz esto se puede hacer en sun pointing tmb(?))
+   if (AC->EarthValid) {
+      *saw_horizon = 1;
+      for(int i = 0; i < 3; i++) nvb[i] = AC->nvb[i];
+      kw = config->kw_nadirpointing;
+      kp = config->kp_nadirpointing;
+      eps = config->eps_nadirpointing;
+   }
+
+   if (*saw_horizon)
+   {  
+      CrossProduct(nvb, config->nadir_pointing_vector, qs); // Compute the nadir vector error
+      qs_norm = Norm3Vector(qs);
+      double dot = DotProduct(AC->nvb, config->nadir_pointing_vector);
+      angle = atan2(qs_norm, dot);
+      qs0 = cos(angle / 2.);
+      if (qs_norm > 1e-12)
+      {
+         for (int i = 0; i < 3; i++)
          {
-            for (int i = 0; i < 3; i++)
-            {
-               qs[i] = (qs[i] / qs_norm) * sin(angle / 2.); // Normalize the nadir vector error
-            }
-         }
-         else
-         {
-            for (int i = 0; i < 3; i++)
-            {
-               qs[i] = 0.0;
-            }
-         }
-         Matrix3Vector(inverse_J, qs, p_component); // Compute the proportional component
-         if (init_sp_loop)
-         {
-            signqs0 = (qs0 >= 0) ? 1.0 : -1.0; // Determine the sign of the scalar part of the quaternion
-            init_sp_loop = 0;
+            qs[i] = (qs[i] / qs_norm) * sin(angle / 2.); // Normalize the nadir vector error
          }
       }
       else
       {
          for (int i = 0; i < 3; i++)
          {
-            p_component[i] = 0.0;
+            qs[i] = 0.0;
          }
-         qs0 = 1.0; // Set the scalar part of the quaternion to 1 (no error)
       }
-
-      Matrix3Vector_trunc(J, (AC->ekf)->x, d_component, 0, 3); // Compute the derivative component
-      for (int i = 0; i < 3; i++)
+      Matrix3Vector(inverse_J, qs, p_component); // Compute the proportional component
+      if (init_sp_loop)
       {
-         u[i] = -kw * eps * d_component[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law
-      }
-      CrossProduct(AC->bvb, u, m); // Compute the magnetic moment command for sun pointing
-      Matrix3Vector_trunc(EYE, (AC->ekf)->x, aux, 3, 6);
-      for (size_t i = 0; i < 3; i++)
-      {
-         m[i] = (m[i] / (b_norm * b_norm)); // Normalize the magnetic moment command
-         if(config->rmm_compensate) {
-            m[i] -= aux[i];
-         }
-         AC->Mcmd[i] = m[i];
+         signqs0 = (qs0 >= 0) ? 1.0 : -1.0; // Determine the sign of the scalar part of the quaternion
+         init_sp_loop = 0;
       }
    }
    else
    {
-      return 1;
+      for (int i = 0; i < 3; i++)
+      {
+         p_component[i] = 0.0;
+      }
+      qs0 = 1.0;
    }
+
+   Matrix3Vector_trunc(J, (AC->ekf)->x, d_component, 0, 3); // Compute the derivative component
+   for (int i = 0; i < 3; i++)
+   {
+      u[i] = -kw * eps * d_component[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law
+   }
+   CrossProduct(AC->bvb, u, m); // Compute the magnetic moment command for nadir pointing
+   Matrix3Vector_trunc(EYE, (AC->ekf)->x, aux, 3, 6);
+   for (size_t i = 0; i < 3; i++)
+   {
+      m[i] = (m[i] / (b_norm * b_norm)); // Normalize the magnetic moment command
+      if(config->rmm_compensate) {
+         m[i] -= aux[i];
+      }
+      AC->Mcmd[i] = m[i];
+   }
+
 
    return 0;
 }
 
-int adcsSunPointing(struct AcType *AC, AcConfig_t *config)
+int adcsSunPointing(struct AcType *AC)
 {
    // Sun Pointing Control Algorithm
+   AcConfig_t *config = GetAcConfig();
 
    double b_norm = Norm3Vector(AC->bvb);
-   if (b_norm > 1e-12)
+   if (b_norm < 1e-9) {
+      return 1;
+   }
+
+   double (*J)[3] = config->J;
+   double (*inverse_J)[3] = config->inv_J;
+   double d_component[3];
+   double p_component[3];
+   double u[3];
+   double m[3];
+   double qs[3];
+   double qs0;
+   double angle;
+   double qs_norm;
+   static int init_sp_loop = 1; // Sign of the scalar part of the quaternion representing the sun pointing error
+   static int signqs0 = 1;
+   double kw = config->kw_sunpointing;
+   double kp = config->kp_sunpointing;
+   double eps = config->eps_sunpointing;
+   double aux[3];
+
+   if (AC->SunValid)
    {
-
-      double (*J)[3] = config->J;
-      double (*inverse_J)[3] = config->inv_J;
-      double d_component[3];
-      double p_component[3];
-      double u[3];
-      double m[3];
-      double qs[3];
-      double qs0;
-      double angle;
-      double qs_norm;
-      static int init_sp_loop = 1; // Sign of the scalar part of the quaternion representing the sun pointing error
-      int signqs0 = 1;
-      double kw = config->kw_sunpointing;
-      double kp = config->kp_sunpointing;
-      double eps = config->eps_sunpointing;
-      double aux[3];
-
-      if (AC->SunValid)
+      CrossProduct(AC->svb, config->sun_pointing_vector, qs); // Compute the sun vector error
+      qs_norm = Norm3Vector(qs);
+      double dot = DotProduct(AC->svb, config->sun_pointing_vector);
+      angle = atan2(qs_norm, dot);
+      qs0 = cos(angle / 2.);
+      if (qs_norm > 1e-12)
       {
-         CrossProduct(AC->svb, config->sun_pointing_vector, qs); // Compute the sun vector error
-         qs_norm = Norm3Vector(qs);
-         double dot = VoV(AC->svb, config->sun_pointing_vector);
-         angle = atan2(qs_norm, dot);
-         qs0 = cos(angle / 2.);
-         if (qs_norm > 1e-12)
+         for (int i = 0; i < 3; i++)
          {
-            for (int i = 0; i < 3; i++)
-            {
-               qs[i] = (qs[i] / qs_norm) * sin(angle / 2.); // Normalize the sun vector error
-            }
-         }
-         else
-         {
-            for (int i = 0; i < 3; i++)
-            {
-               qs[i] = 0.0; // If the sun vector error is negligible, set it to zero
-               qs0 = 1.0;
-            }
-         }
-         Matrix3Vector(inverse_J, qs, p_component);
-
-         if (init_sp_loop)
-         {
-            signqs0 = (qs0 >= 0) ? 1.0 : -1.0; // Determine the sign of the scalar part of the quaternion
-            init_sp_loop = 0;
+            qs[i] = (qs[i] / qs_norm) * sin(angle / 2.); // Normalize the sun vector error
          }
       }
       else
-      {  
-         kw = config->kw_sunpointing_eclipse;
-         eps = config->eps_sunpointing_eclipse;
-
+      {
          for (int i = 0; i < 3; i++)
          {
-            p_component[i] = 0.0; // Set the proportional component to zero
+            qs[i] = 0.0; // If the sun vector error is negligible, set it to zero
+            qs0 = 1.0;
          }
-         qs0 = 1.0; // Set the scalar part of the quaternion to 1 (no error)
       }
+      Matrix3Vector(inverse_J, qs, p_component);
 
-      Matrix3Vector(J, AC->wbn, d_component); // Compute the control moment based on angular velocity and inertia
-      for (int i = 0; i < 3; i++)
+      if (init_sp_loop)
       {
-         u[i] = -kw * eps * d_component[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law  u = u - obj.eps*obj.eps*obj.k_p*inv(obj.iner)*dq*signq4;
-      }
-      CrossProduct(AC->bvb, u, m); // Compute the magnetic moment command for sun pointing
-      Matrix3Vector_trunc(EYE, (AC->ekf)->x, aux, 3, 6);
-      for (size_t i = 0; i < 3; i++)
-      {
-         m[i] = (m[i] / (b_norm * b_norm));
-         if(config->rmm_compensate) {
-            m[i] -= aux[i];
-         }
-         if(m[i] > config->max_dipole) {
-            m[i] = (m[i] / abs(m[i]))*config->max_dipole;
-         }
-         AC->Mcmd[i] = m[i];
+         signqs0 = (qs0 >= 0) ? 1.0 : -1.0; // Determine the sign of the scalar part of the quaternion
+         init_sp_loop = 0;
       }
    }
    else
+   {  
+      kw = config->kw_sunpointing_eclipse;
+      eps = config->eps_sunpointing_eclipse;
+
+      for (int i = 0; i < 3; i++)
+      {
+         p_component[i] = 0.0; 
+      }
+      qs0 = 1.0; 
+   }
+
+   Matrix3Vector(J, AC->wbn, d_component); // Compute the control moment based on angular velocity and inertia
+   for (int i = 0; i < 3; i++)
    {
-      return 1;
+      u[i] = -kw * eps * d_component[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law  u = u - obj.eps*obj.eps*obj.k_p*inv(obj.iner)*dq*signq4;
+   }
+   CrossProduct(AC->bvb, u, m); 
+   Matrix3Vector_trunc(EYE, (AC->ekf)->x, aux, 3, 6);
+   for (size_t i = 0; i < 3; i++)
+   {
+      m[i] = (m[i] / (b_norm * b_norm));
+      if(config->rmm_compensate) {
+         m[i] -= aux[i];
+      }
+      if(m[i] > config->max_dipole) {
+         m[i] = (m[i] / abs(m[i]))*config->max_dipole;
+      }
+      AC->Mcmd[i] = m[i];
    }
 
    return 0;
@@ -395,30 +402,30 @@ int adcsUBA(struct AcType *AC)
    }
 
    int retval = 0.;
+   static int saw_horizon = 0; // Para guardar primer avistamiento el horizonte en nad pointing
 
    /* Get ADCS configuration */
    AcConfig_t *config_ac = GetAcConfig();
 
    UpdateMode(AC, config_ac);
    enum AcMode currentMode = GetCurrentMode(AC);
-
    RmmEkfStep(AC, config_ac);
    switch (currentMode)
    {
    case AC_MODE_DETUMBLE:
-
-      retval = adcsDetumbling(AC, config_ac);
+      saw_horizon = 0;
+      retval = adcsDetumbling(AC);
 
       break;
 
    case AC_MODE_SUN_POINTING:
-
-      retval = adcsSunPointing(AC, config_ac); // Hacer algo despues con el retval
+      saw_horizon = 0;
+      retval = adcsSunPointing(AC); // Hacer algo despues con el retval
 
       break;
    case AC_MODE_NADIR_POINTING:
 
-      retval = adcsNadirPointing(AC, config_ac);
+      retval = adcsNadirPointing(AC, &saw_horizon);
 
       break;
    }

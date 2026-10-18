@@ -11,17 +11,17 @@ FALSE                         ! Use Polyhedron Gravity
 EARTH                         !  Orbit Center
 TRUE                          !  Secular Orbit Drift Due to J2
 KEP                           !  Use Keplerian elements (KEP) or (RV) or FILE
-PA                            !  Use Peri/Apoapsis (PA) or min alt/ecc (AE)
+AE                            !  Use Peri/Apoapsis (PA) or min alt/ecc (AE)
 600.0  600.0                  !  Periapsis & Apoapsis Altitude, km  519.0  533.0
-626.0  0.0011                 !  Min Altitude (km), Eccentricity
-97.77                         !  Inclination (deg)
-0.0                          !  Right Ascension of Ascending Node (deg) 45
+400.0  0.01                   !  Min Altitude (km), Eccentricity
+98.00                         !  Inclination (deg)
+100.0                           !  Right Ascension of Ascending Node (deg) 45
 0.0                           !  Argument of Periapsis (deg)
 0.0                           !  True Anomaly (deg)
 6978.0 0.0 0.0                !  RV Initial Position (km)
 0.0  7.56 0.0                 !  RV Initial Velocity (km/sec)
-TRV                           !  TLE, TRV, or SPLINE file format
-"TRV.txt"                     !  File name
+TLE                          !  TLE, TRV, or SPLINE file format
+"TLE.txt"                     !  File name
 "EXAMPLE 1"                   !  Label to find in TLE or TRV file
 :::::::::::::  Use these lines if THREE_BODY      ::::::::::::::::
 SUNEARTH                      !  Lagrange system

@@ -14,6 +14,8 @@
 
 #include "42.h"
 #include "mtqfsw.h"
+#include "adcs/ekf_rmm.h"
+#include <math.h>
 #include <stdio.h>
 
 #ifdef _ENABLE_RBT_
@@ -72,6 +74,22 @@ long FswCmdInterpreter(char CmdLine[512],double *CmdTime)
          CmdTime,&Isc,response) == 3) {
          NewCmdProcessed = TRUE;
          SC[Isc].FswTag = DecodeString(response);
+      }
+
+      else if (sscanf(CmdLine,"%lf SC[%ld] AC Mode = %s",
+         CmdTime,&Isc,response) == 3) {
+         if (!strcmp(response,"DETUMBLE")) {
+            SC[Isc].AC.ReqMode = AC_MODE_DETUMBLE;
+            NewCmdProcessed = TRUE;
+         }
+         else if (!strcmp(response,"SUN_POINTING")) {
+            SC[Isc].AC.ReqMode = AC_MODE_SUN_POINTING;
+            NewCmdProcessed = TRUE;
+         }
+         else if (!strcmp(response,"NADIR_POINTING")) {
+            SC[Isc].AC.ReqMode = AC_MODE_NADIR_POINTING;
+            NewCmdProcessed = TRUE;
+         }
       }
 
       else if (sscanf(CmdLine,"%lf SC[%ld] Cmd Angles = [%lf %lf %lf] deg, Seq = %ld wrt %c Frame",
@@ -764,6 +782,8 @@ void InitAC(struct SCType *S)
       AC->Init = 1;
       
       AC->ID = S->ID;
+
+      AC->ekf = (struct RmmEkf *) calloc(1,sizeof(struct RmmEkf));
       
       /* Fundamental Constants */
       AC->Pi = Pi;
@@ -887,6 +907,13 @@ void InitAC(struct SCType *S)
          }
       }
 
+      /* Earth Horizon Sensors */
+      AC->Nehs = S->Nehs;
+      if (AC->Nehs > 0) {
+         AC->EHS = (struct AcEarthSensorType *) calloc(AC->Nehs,sizeof(struct AcEarthSensorType));
+      }
+      
+
       /* Wheels */
       AC->Nwhl = S->Nw;
       if (AC->Nwhl > 0) {
@@ -977,6 +1004,11 @@ void InitAC(struct SCType *S)
       AC->ThrCtrl.Init = 1;
       AC->CfsCtrl.Init = 1;
       AC->ThrSteerCtrl.Init = 1;
+
+      if (S->FswTag == MTQ_FSW) {
+         AC->Mode = AC_MODE_DETUMBLE;
+         AC->ReqMode = AC_MODE_DETUMBLE;
+      }
       
       AC->PrototypeCtrl.wc = 0.05*TwoPi;
       AC->PrototypeCtrl.amax = 0.01;
@@ -1438,13 +1470,15 @@ void MtbProcessing2(struct AcType *AC)
 /*  End Actuator Processing Functions                                 */
 /**********************************************************************/
 
+
 void MtqFSW(struct AcType *AC)
 {
       GyroProcessing2(AC);
       MagnetometerProcessing2(AC);
-      CssProcessing2(AC);
+      cssProcessing(AC);
+      esProcessing(AC);
 
-      adcsMagSunUBA(AC);
+      adcsUBA(AC);
 
       WheelProcessing2(AC);
       MtbProcessing2(AC);
@@ -1570,7 +1604,7 @@ void MomBiasFSW(struct SCType *S)
          C->Init = 0;
       }
 
-      if (!AC->ES.Valid) {  /* Bdot Acquisition */
+      if (!AC->EarthValid) {  /* Bdot Acquisition */
 
          AC->Whl[0].Tcmd = -Kry*(AC->Whl[0].H-Hwcmd);
          for(i=0;i<3;i++) {
@@ -1587,11 +1621,11 @@ void MomBiasFSW(struct SCType *S)
 
          /* Pitch Loop */
          PitchRateError = AC->wbn[1]-PitchRateCmd;
-         PitchTcmd = -Kry*PitchRateError-Kpy*AC->ES.Pitch;
+         PitchTcmd = -Kry*PitchRateError-Kpy*(AC->EHS)->Pitch;
          AC->Whl[0].Tcmd = -PitchTcmd-Kunl*(AC->Whl[0].H-Hwcmd);
 
          /* Roll-Yaw Loop */
-         Tcmd[0] = -Krx*AC->wbn[0]-Kpx*AC->ES.Roll;
+         Tcmd[0] = -Krx*AC->wbn[0]-Kpx*(AC->EHS)->Roll;
          Tcmd[2] = -0.5*Tcmd[0];
 
          /* Wheel Unload */

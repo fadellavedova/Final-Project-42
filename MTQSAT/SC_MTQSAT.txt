@@ -1,9 +1,9 @@
-    <<<<<<<<<<<<<<<<<  42: Spacecraft Description File   >>>>>>>>>>>>>>>>>
+<<<<<<<<<<<<<<<<<  42: Spacecraft Description File   >>>>>>>>>>>>>>>>>
 Small Cubesat                 !  Description
 "UBA"                         !  Label
 GenScSpriteAlpha.ppm          !  Sprite File Name
-MTQ_FSW                       !  Flight Software Identifier
-0.5                           !  FSW Sample Time, sec
+MTQ_FSW                      !  Flight Software Identifier
+1.0                           !  FSW Sample Time, sec
 ************************* Orbit Parameters ****************************
 ENCKE                         !  Orbit Prop FIXED, EULER_HILL, or ENCKE
 CM                            !  Pos of CM or ORIGIN, wrt F
@@ -32,7 +32,7 @@ NONE                          ! Shaker File Name
 0.0  0.0  0.0                 ! Products of Inertia (xy,xz,yz)
 0.0003  -0.0012  0.004        ! Location of mass center, m 
 0.0  0.0  0.0                 ! Constant Embedded Momentum (Nms)
-0.0005  0.0005   0.0005       ! Constant Embedded Magnetic Dipole (A-m^2)
+0.001  -0.001   0.001         ! Constant Embedded Magnetic Dipole (A-m^2)
 usat1.obj                     ! Geometry Input File Name
 NONE                          ! Node File Name
 NONE                          ! Flex File Name
@@ -71,15 +71,15 @@ NONE                          ! Jitter Input File Name
 **************************** MTB Parameters ****************************
 3                             ! Number of MTBs
 ==============================  MTB 0  =================================
-0.1                           ! Saturation (A-m^2)
+0.2                           ! Saturation (A-m^2)
 1.0   0.0   0.0               ! MTB Axis Components, [X, Y, Z]
 0                             ! Flex Node Index
 ==============================  MTB 1  =================================
-0.1                           ! Saturation (A-m^2)
+0.2                           ! Saturation (A-m^2)
 0.0   1.0   0.0               ! MTB Axis Components, [X, Y, Z]
 0                             ! Flex Node Index
 ==============================  MTB 2  =================================
-0.1                           ! Saturation (A-m^2)
+0.2                           ! Saturation (A-m^2)
 0.0   0.0   1.0               ! MTB Axis Components, [X, Y, Z]
 0                             ! Flex Node Index
 ************************* Thruster Parameters **************************
@@ -95,35 +95,35 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 ============================== Axis 0 ===================================
 1.0                           ! Sample Time,sec
 1.0  0.0  0.0                 ! Axis expressed in Body Frame
-1000.0                        ! Max Rate, deg/sec
-100.0                         ! Scale Factor Error, ppm
+200                           ! Max Rate, deg/sec
+2000.0                         ! Scale Factor Error, ppm
 1.0                           ! Quantization, arcsec 
-0.07                          ! Angle Random Walk (deg/rt-hr)
-0.1  1.0                      ! Bias Stability (deg/hr) over timespan (hr)
-0.1                           ! Angle Noise, arcsec RMS
-220.1                         ! Initial Bias (deg/hr)
+0.03                          ! Angle Random Walk (deg/rt-hr)
+0.8  1.0                      ! Bias Stability (deg/hr) over timespan (hr)
+2.52                          ! Angle Noise, arcsec RMS
+360                           ! Initial Bias (deg/hr)
 0                             ! Node
 ============================== Axis 1 ===================================
 1.0                           ! Sample Time,sec
 0.0  1.0  0.0                 ! Axis expressed in Body Frame
-1000.0                        ! Max Rate, deg/sec
-100.0                         ! Scale Factor Error, ppm
+200                           ! Max Rate, deg/sec
+2000.0                         ! Scale Factor Error, ppm
 1.0                           ! Quantization, arcsec 
-0.07                          ! Angle Random Walk (deg/rt-hr)
-0.1  1.0                      ! Bias Stability (deg/hr) over timespan (hr)
-0.1                           ! Angle Noise, arcsec RMS
-220.1                         ! Initial Bias (deg/hr)
+0.03                          ! Angle Random Walk (deg/rt-hr)
+0.8  1.0                      ! Bias Stability (deg/hr) over timespan (hr)
+2.52                          ! Angle Noise, arcsec RMS
+360                           ! Initial Bias (deg/hr)
 0                             ! Node
 ============================== Axis 2 ===================================
 1.0                           ! Sample Time,sec
 0.0  0.0  1.0                 ! Axis expressed in Body Frame
-1000.0                        ! Max Rate, deg/sec
-100.0                         ! Scale Factor Error, ppm
+200                           ! Max Rate, deg/sec
+2000.0                         ! Scale Factor Error, ppm
 1.0                           ! Quantization, arcsec 
-0.07                          ! Angle Random Walk (deg/rt-hr)
-0.1  1.0                      ! Bias Stability (deg/hr) over timespan (hr)
-0.1                           ! Angle Noise, arcsec RMS
-220.1                         ! Initial Bias (deg/hr)
+0.03                          ! Angle Random Walk (deg/rt-hr)
+0.8  1.0                      ! Bias Stability (deg/hr) over timespan (hr)
+2.52                          ! Angle Noise, arcsec RMS
+360                           ! Initial Bias (deg/hr)
 0                             ! Node
 *************************** Magnetometer ********************************
 3                             ! Number of Magnetometer Axes
@@ -133,7 +133,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 800.0E-6                      ! Saturation, Tesla
 0.0                           ! Scale Factor Error, ppm
 13.0E-9                       ! Quantization, Tesla 
-13.0E-9                       ! Noise, Tesla RMS
+40.0E-9                       ! Noise, Tesla RMS
 0                             ! Node
 ============================== Axis 1 ===================================
 1.0                           ! Sample Time,sec
@@ -141,7 +141,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 800.0E-6                      ! Saturation, Tesla
 0.0                           ! Scale Factor Error, ppm
 13.0E-9                       ! Quantization, Tesla 
-13.0E-9                       ! Noise, Tesla RMS
+40.0E-9                       ! Noise, Tesla RMS
 0                             ! Node
 ============================== Axis 2 ===================================
 1.0                           ! Sample Time,sec
@@ -149,7 +149,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 800.0E-6                      ! Saturation, Tesla
 0.0                           ! Scale Factor Error, ppm
 13.0E-9                       ! Quantization, Tesla 
-13.0E-9                       ! Noise, Tesla RMS
+40.0E-9                       ! Noise, Tesla RMS
 0                             ! Node
 *********************** Coarse Sun Sensor *******************************
 6                             ! Number of Coarse Sun Sensors
@@ -251,8 +251,13 @@ X_AXIS                      ! Boresight Axis X_AXIS, Y_AXIS, or Z_AXIS
 3600.0   3600.0             ! H, V FOV Size, arcsec
 2.0                         ! Noise Equivalent Angle, arcsec RMS
 60.0                        ! Detector Scale, arcsec/pixel
-0  0                        ! Body, Node
-0.0  0.0  0.0  321          ! FOV Frame (Fr) Angles (deg), Seq wrt R frame
-0.00  0.0                   ! Guide Star H, V (deg) in FOV Frame
-NONE                        ! Optics Input File Name
-NONE                        ! PSF Image File Name
+************************* Earth Horizon Sensor ***************************
+1                           ! Number of Earth Horizon Sensors
+========================= Earth Horizon Sensor 0 =========================
+2                           ! Sample Time, sec
+30                          ! Mount Angle Around X+
+45                          ! FOV Half Angle
+0.3                         ! Noise (1 sigma) [deg]
+14                          ! Max Slew Rate [deg/s]
+0                           ! Body
+0                           ! Node

@@ -33,7 +33,7 @@ NONE                          ! Shaker File Name
 0.0003  -0.0012  0.004        ! Location of mass center, m 
 0.0  0.0  0.0                 ! Constant Embedded Momentum (Nms)
 0.001  -0.001   0.001         ! Constant Embedded Magnetic Dipole (A-m^2)
-usat1.obj                     ! Geometry Input File Name
+ubasat.obj                ! Geometry Input File Name
 NONE                          ! Node File Name
 NONE                          ! Flex File Name
 ************************************************************************

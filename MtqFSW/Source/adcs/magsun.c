@@ -247,7 +247,7 @@ int adcsNadirPointing(struct AcType *AC, int *saw_horizon)
    {  
       CrossProduct(nvb, config->nadir_pointing_vector, qs); // Compute the nadir vector error
       qs_norm = Norm3Vector(qs);
-      double dot = DotProduct(AC->nvb, config->nadir_pointing_vector);
+      double dot = DotProduct(nvb, config->nadir_pointing_vector);
       angle = atan2(qs_norm, dot);
       qs0 = cos(angle / 2.);
       if (qs_norm > 1e-12)

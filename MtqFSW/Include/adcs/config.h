@@ -48,7 +48,7 @@ typedef struct AcConfig
 
 static AcConfig_t ac_config = {
     .detumble_angular_velocity_threshold_low = 0.005,
-    .detumble_angular_velocity_threshold_high = 0.06,
+    .detumble_angular_velocity_threshold_high = 0.1,
 
     .kw_detumb = 0.33,
     .eps_detumb = 0.01,
@@ -81,8 +81,8 @@ static AcConfig_t ac_config = {
     .max_dipole = 0.2,
 
     .S2BMatrix = {{1.0, 0.0, 0.0},
-                  {0.0, 0.866, -0.5},
-                  {0.0, 0.5, 0.866}}
+                  {0.0, 0.3746, -0.9271}, // basada en 68°
+                  {0.0, 0.9271, 0.3746}}
 };
 
 typedef struct Ekf_config

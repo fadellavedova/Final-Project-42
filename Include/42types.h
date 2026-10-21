@@ -449,6 +449,7 @@ struct EhsType {
    double CosFov;
    double Noise;
    double MaxSlew;
+   double MinEarthArc;
    long Node;
 };
 

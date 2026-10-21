@@ -2780,6 +2780,8 @@ void InitSpacecraft(struct SCType *S)
 
             fscanf(infile,"%lf %[^\n] %[\n]",&EHS->MaxSlew,junk,&newline);  
             EHS->MaxSlew *= D2R;
+
+            fscanf(infile,"%lf %[^\n] %[\n]",&EHS->MinEarthArc,junk,&newline);  
             
             fscanf(infile,"%ld %[^\n] %[\n]",&EHS->Body,junk,&newline);
             fscanf(infile,"%ld %[^\n] %[\n]",&EHS->Node,junk,&newline);

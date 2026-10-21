@@ -14,6 +14,10 @@
 
 #include "42.h"
 
+#define RE 6371
+#define PI 3.14156
+#define NUM_HORIZON_POINTS 120
+
 /* #ifdef __cplusplus
 ** namespace _42 {
 ** using namespace Kit;
@@ -556,13 +560,48 @@ void FgsModel(struct SCType *S)
          
 }
 /**********************************************************************/
+double amountHorizonInFOV(const double nvs[3], double cosFov, double altitude_km) 
+{
+   double rho;
+   double phi;
+   const int N = NUM_HORIZON_POINTS;
+   double a[3] = {}, u[3], v[3], p[3];
+   int count = 0;
+
+   rho = asin(RE/altitude_km);
+
+   if(fabs(nvs[1]) > 0.8){
+      a[0] = 1.0;
+   } else {
+      a[1] = 1.0;
+   }
+
+   VxV(nvs, a, u);
+   VxV(nvs, u, v);
+   UNITV(u);
+   UNITV(v);
+
+   for(int i = 0; i < N; i++) {
+      phi = 2*PI*i/N;
+      for(int k = 0; k < 3; k++) {
+         p[k] = nvs[k]*cos(rho) + sin(rho)*(u[k]*cos(phi) + v[k]*sin(phi));
+      }
+      if (p[2] > cosFov) {
+         count++;
+      }
+   }
+
+   return 100*((double)count)/N;
+}
+
+
 void EhsModel(struct SCType *S)
 {
       struct EhsType *EHS;
       struct AcType *AC;
       double evn[3],evb[3],evs[3];
       static double roll, pitch = 0;
-      double wmag;
+      double wmag, altitude, frac;
       long i, ie;
       static long valid = 0;
       
@@ -570,21 +609,21 @@ void EhsModel(struct SCType *S)
 
       for(ie = 0; ie < S->Nehs; ie++) {
          // Obtenemos la medicion de la iteracion previa (se simula delay de tiempo de muestreo)
-         (AC->EHS)->Roll = roll;
-         (AC->EHS)->Pitch = pitch;
-         (AC->EHS)->Valid = valid;
+
          // Modelo
          EHS = &S->EHS[ie];
          EHS->SampleCounter++;
          if (EHS->SampleCounter >= EHS->MaxCounter) {
             EHS->SampleCounter = 0;      
-            double wmag = MAGV(S->B[0].wn); 
+            wmag = MAGV(S->B[0].wn); 
             for (i=0;i<3;i++) evn[i] = -S->PosN[i];
+            altitude = MAGV(evn)/1e3;
             UNITV(evn);
             MxV(S->B[0].CN,evn,evb);
-            /* Rotate body-frame nadir into sensor frame using per-spacecraft mount */
             MxV(EHS->CB,evb,evs);
-            if (evs[2] > EHS->CosFov) {
+            frac = amountHorizonInFOV(evs, EHS->CosFov, altitude);
+            
+            if (frac > EHS->MinEarthArc) {
                pitch  =  acos(evs[2]);
                roll = atan2(evs[1], evs[0]);
 
@@ -598,6 +637,9 @@ void EhsModel(struct SCType *S)
                roll = 0.0;
                pitch = 0.0;
             }
+            (AC->EHS)->Roll = roll;
+            (AC->EHS)->Pitch = pitch;
+            (AC->EHS)->Valid = valid;
          }
       }
 }

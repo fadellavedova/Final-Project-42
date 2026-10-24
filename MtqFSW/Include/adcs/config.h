@@ -50,19 +50,19 @@ static AcConfig_t ac_config = {
     .detumble_angular_velocity_threshold_low = 0.005,
     .detumble_angular_velocity_threshold_high = 0.1,
 
-    .kw_detumb = 0.33,
-    .eps_detumb = 0.01,
+    .kw_detumb = 0.66,
+    .eps_detumb = 0.02,
 
     .J = {{0.0021, 0, 0}, {0, 0.0018, 0}, {0, 0, 0.002}},
 
     .inv_J = {{476.19, 0, 0},{0, 555.5556, 0},{0, 0, 500}},
 
-    .kw_sunpointing = 0.3, // Añadir diferencia con ganancias en eclipse
-    .kp_sunpointing = 0.000025,
-    .eps_sunpointing = 0.01,
+    .kw_sunpointing = 0.4, // Añadir diferencia con ganancias en eclipse
+    .kp_sunpointing = 0.00004,
+    .eps_sunpointing = 0.013,
 
-    .kw_sunpointing_eclipse = 0.3, // Añadir diferencia con ganancias en eclipse
-    .eps_sunpointing_eclipse = 0.03,
+    .kw_sunpointing_eclipse = 0.5, // Añadir diferencia con ganancias en eclipse
+    .eps_sunpointing_eclipse = 0.04,
 
     .kw_nadirpointing = 0.33, // Añadir diferencia con ganancias cuando no hay horizonte
     .kp_nadirpointing = 0.000025,
@@ -92,6 +92,7 @@ typedef struct Ekf_config
     double processNoise[6][6];
     double minimumProcessNoise[6][6];
     double measurementNoise[3][3];
+    double minimumMeasNoise[3][3];
     double J[3][3];
     double alpha;
 }Ekf_config_t;
@@ -99,9 +100,10 @@ typedef struct Ekf_config
 static Ekf_config_t ekf_config = {
     .initialState = {},
     .initialCovariance = {{2e-7, 0, 0, 0, 0, 0}, {0, 2e-7, 0, 0, 0, 0}, {0, 0, 2e-7, 0, 0, 0}, {0, 0, 0, 2e-3, 0, 0}, {0, 0, 0, 0, 2e-3, 0}, {0, 0, 0, 0, 0, 2e-3}}, //[[eye(3)*0.00001^2 zeros(3)];[zeros(3) eye(3)*0.001^2]]*2000
-    .processNoise = {{1e-9, 0, 0, 0, 0, 0}, {0, 1e-9, 0, 0, 0, 0}, {0, 0, 1e-9, 0, 0, 0}, {0, 0, 0, 1e-7, 0, 0}, {0, 0, 0, 0, 1e-7, 0}, {0, 0, 0, 0, 0, 1e-7}},
-    .minimumProcessNoise = {{1e-9, 0, 0, 0, 0, 0}, {0, 1e-9, 0, 0, 0, 0}, {0, 0, 1e-9, 0, 0, 0}, {0, 0, 0, 1e-7, 0, 0}, {0, 0, 0, 0, 1e-7, 0}, {0, 0, 0, 0, 0, 1e-7}},
-    .measurementNoise = {{0.5, 0, 0}, {0, 0.5, 0}, {0, 0, 0.5}},
+    .processNoise = {{1e-7, 0, 0, 0, 0, 0}, {0, 1e-7, 0, 0, 0, 0}, {0, 0, 1e-7, 0, 0, 0}, {0, 0, 0, 1e-5, 0, 0}, {0, 0, 0, 0, 1e-5, 0}, {0, 0, 0, 0, 0, 1e-5}},
+    .minimumProcessNoise = {{1e-7, 0, 0, 0, 0, 0}, {0, 1e-7, 0, 0, 0, 0}, {0, 0, 1e-7, 0, 0, 0}, {0, 0, 0, 1e-5, 0, 0}, {0, 0, 0, 0, 1e-5, 0}, {0, 0, 0, 0, 0, 1e-5}},
+    .measurementNoise = {{0.01, 0, 0}, {0, 0.01, 0}, {0, 0, 0.01}},
+    .minimumMeasNoise = {{0.01, 0, 0}, {0, 0.01, 0}, {0, 0, 0.01}},
     .J =  {{0.0021, 0, 0}, {0, 0.0018, 0}, {0, 0, 0.002}},
     .alpha = 0.01f
 };

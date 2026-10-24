@@ -12,6 +12,7 @@ struct RmmEkf
    double Q[6][6];
    double Qmin[6][6];
    double R[3][3];
+   double Rmin[3][3];
    double J[3][3];
    double invJ[3][3];
    double alpha;

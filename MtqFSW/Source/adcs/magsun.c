@@ -293,10 +293,22 @@ int adcsNadirPointing(struct AcType *AC, int *saw_horizon)
       if(config->rmm_compensate) {
          m[i] -= aux[i];
       }
+   }
+   double max_m = 0.0;
+   for (size_t i = 0; i < 3; i++) {
+      if (fabs(m[i]) > max_m) {
+         max_m = fabs(m[i]);
+      }
+   }
+   if (max_m > config->max_dipole) {
+      double scale = config->max_dipole / max_m;
+      for (size_t i = 0; i < 3; i++) {
+         m[i] *= scale;
+      }
+   }
+   for (size_t i = 0; i < 3; i++) {
       AC->Mcmd[i] = m[i];
    }
-
-
    return 0;
 }
 
@@ -369,22 +381,35 @@ int adcsSunPointing(struct AcType *AC)
       qs0 = 1.0; 
    }
 
-   Matrix3Vector(J, AC->wbn, d_component); // Compute the control moment based on angular velocity and inertia
+   Matrix3Vector_trunc(J, (AC->ekf)->x, d_component, 0, 3);// Compute the control moment based on angular velocity and inertia
    for (int i = 0; i < 3; i++)
    {
       u[i] = -kw * eps * d_component[i] - kp * eps * eps * signqs0 * p_component[i]; // Control law  u = u - obj.eps*obj.eps*obj.k_p*inv(obj.iner)*dq*signq4;
    }
-   CrossProduct(AC->bvb, u, m); 
    Matrix3Vector_trunc(EYE, (AC->ekf)->x, aux, 3, 6);
+   CrossProduct(AC->bvb, u, m); 
+   
    for (size_t i = 0; i < 3; i++)
    {
       m[i] = (m[i] / (b_norm * b_norm));
+      
       if(config->rmm_compensate) {
          m[i] -= aux[i];
       }
-      if(m[i] > config->max_dipole) {
-         m[i] = (m[i] / abs(m[i]))*config->max_dipole;
+   }
+   double max_m = 0.0;
+   for (size_t i = 0; i < 3; i++) {
+      if (fabs(m[i]) > max_m) {
+         max_m = fabs(m[i]);
       }
+   }
+   if (max_m > config->max_dipole) {
+      double scale = config->max_dipole / max_m;
+      for (size_t i = 0; i < 3; i++) {
+         m[i] *= scale;
+      }
+   }
+   for (size_t i = 0; i < 3; i++) {
       AC->Mcmd[i] = m[i];
    }
 

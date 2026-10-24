@@ -11,7 +11,7 @@ CM                            !  Pos of CM or ORIGIN, wrt F
 0.0  0.0  0.0                 ! Vel wrt F
 *************************** Initial Attitude ***************************
 NQN                           ! Ang Vel wrt [NL], Att [QA] wrt [NLF]
-1.5    1.5   1.5              ! Ang Vel (deg/sec)
+10.0    10.0   10.0           ! Ang Vel (deg/sec)
 0.0    0.0   0.0    1.0       ! Quaternion
 0.0    0.0   0.0    123       ! Angles (deg) & Euler Sequence
 ***************************  Dynamics Flags  ***************************
@@ -28,12 +28,12 @@ NONE                          ! Shaker File Name
 1                             ! Number of Bodies
 ================================ Body 0 ================================
 1.3                           ! Mass
-0.002  0.002   0.002          ! Moments of Inertia (kg-m^2)
+0.0021  0.0018   0.002        ! Moments of Inertia (kg-m^2)
 0.0  0.0  0.0                 ! Products of Inertia (xy,xz,yz)
-0.0003  -0.0012  0.004        ! Location of mass center, m 
+0.0003  -0.0012  0.0002        ! Location of mass center, m 
 0.0  0.0  0.0                 ! Constant Embedded Momentum (Nms)
 0.001  -0.001   0.001         ! Constant Embedded Magnetic Dipole (A-m^2)
-ubasat.obj                ! Geometry Input File Name
+ubasat.obj                    ! Geometry Input File Name
 NONE                          ! Node File Name
 NONE                          ! Flex File Name
 ************************************************************************

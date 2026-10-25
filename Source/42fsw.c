@@ -1480,8 +1480,7 @@ void MtqFSW(struct AcType *AC)
 
       adcsUBA(AC);
 
-      WheelProcessing2(AC);
-      MtbProcessing2(AC);
+      mtbProcessing(AC);
 
 }
 

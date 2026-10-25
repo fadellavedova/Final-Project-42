@@ -560,7 +560,7 @@ void FgsModel(struct SCType *S)
          
 }
 /**********************************************************************/
-double amountHorizonInFOV(const double nvs[3], double cosFov, double altitude_km) 
+double amountHorizonInFOV(double nvs[3], double cosFov, double altitude_km) 
 {
    double rho;
    double phi;

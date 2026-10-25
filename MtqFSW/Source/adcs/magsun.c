@@ -145,6 +145,39 @@ void esProcessing(struct AcType *AC) // FUNCION: tiene que calcular el vecornadi
    }
 }
 
+void mtbProcessing(struct AcType *AC)
+{
+      if(AC->Nmtb > 3) {
+         printf("Wrong processing function, Mmtb > 3.\n");
+      }
+
+      AcConfig_t *config = GetAcConfig();
+      struct AcMtbType *M;
+      long Im;
+      double m[3];
+      double max_m = 0.0;
+
+      Matrix3Vector(config->mtq_matrix, AC->Mcmd, m); //TF a los ejes de los mtq
+
+      for (size_t i = 0; i < 3; i++) {
+         if (fabs(m[i]) > max_m) {
+            max_m = fabs(m[i]);
+         }
+      }
+      if (max_m > config->max_dipole) {
+         double scale = config->max_dipole / max_m;
+         for (size_t i = 0; i < 3; i++) {
+            m[i] *= scale;
+         }
+      }
+      for(Im=0;Im<AC->Nmtb;Im++) {
+         M = &AC->MTB[Im];
+         M->Mcmd = m[Im];
+      }
+
+}
+
+
 /* ********************************************************************
    Attitude Est and Control Algorithms
    Detumbling:
@@ -194,6 +227,9 @@ int adcsDetumbling(struct AcType *AC)
       for (size_t i = 0; i < 3; i++)
       {
          m[i] = (m[i] / (b_norm * b_norm)); // Normalize the magnetic moment command
+      }
+
+      for (size_t i = 0; i < 3; i++) {
          AC->Mcmd[i] = m[i];
       }
    }
@@ -294,18 +330,7 @@ int adcsNadirPointing(struct AcType *AC, int *saw_horizon)
          m[i] -= aux[i];
       }
    }
-   double max_m = 0.0;
-   for (size_t i = 0; i < 3; i++) {
-      if (fabs(m[i]) > max_m) {
-         max_m = fabs(m[i]);
-      }
-   }
-   if (max_m > config->max_dipole) {
-      double scale = config->max_dipole / max_m;
-      for (size_t i = 0; i < 3; i++) {
-         m[i] *= scale;
-      }
-   }
+
    for (size_t i = 0; i < 3; i++) {
       AC->Mcmd[i] = m[i];
    }
@@ -397,18 +422,7 @@ int adcsSunPointing(struct AcType *AC)
          m[i] -= aux[i];
       }
    }
-   double max_m = 0.0;
-   for (size_t i = 0; i < 3; i++) {
-      if (fabs(m[i]) > max_m) {
-         max_m = fabs(m[i]);
-      }
-   }
-   if (max_m > config->max_dipole) {
-      double scale = config->max_dipole / max_m;
-      for (size_t i = 0; i < 3; i++) {
-         m[i] *= scale;
-      }
-   }
+
    for (size_t i = 0; i < 3; i++) {
       AC->Mcmd[i] = m[i];
    }
@@ -419,11 +433,10 @@ int adcsSunPointing(struct AcType *AC)
 int adcsUBA(struct AcType *AC)
 {
    /* Get EKF configuration */
-   Ekf_config_t *config_ekf = GetEkfConfig();
 
    if ((AC->ekf)->initialized != 1)
    {
-      RmmEkfInit(AC->ekf, config_ekf);
+      RmmEkfInit(AC->ekf);
    }
 
    int retval = 0.;
@@ -454,4 +467,5 @@ int adcsUBA(struct AcType *AC)
 
       break;
    }
+   return retval;
 }

@@ -37,7 +37,9 @@ typedef struct AcConfig
     float eclipse_threshold; // Threshold for eclipse detection
     float magnetic_field_min;
     int rmm_compensate;
+
     float max_dipole;
+    double mtq_matrix[3][3];
 
     // EHS
     double S2BMatrix[3][3];
@@ -50,21 +52,21 @@ static AcConfig_t ac_config = {
     .detumble_angular_velocity_threshold_low = 0.005,
     .detumble_angular_velocity_threshold_high = 0.1,
 
-    .kw_detumb = 0.66,
-    .eps_detumb = 0.02,
+    .kw_detumb = 0.3,
+    .eps_detumb = 0.01,
 
     .J = {{0.0021, 0, 0}, {0, 0.0018, 0}, {0, 0, 0.002}},
 
     .inv_J = {{476.19, 0, 0},{0, 555.5556, 0},{0, 0, 500}},
 
-    .kw_sunpointing = 0.4, // Añadir diferencia con ganancias en eclipse
-    .kp_sunpointing = 0.00004,
-    .eps_sunpointing = 0.013,
+    .kw_sunpointing = 0.3, // Añadir diferencia con ganancias en eclipse
+    .kp_sunpointing = 0.000025,
+    .eps_sunpointing = 0.01,
 
-    .kw_sunpointing_eclipse = 0.5, // Añadir diferencia con ganancias en eclipse
+    .kw_sunpointing_eclipse = 0.3, // Añadir diferencia con ganancias en eclipse
     .eps_sunpointing_eclipse = 0.04,
 
-    .kw_nadirpointing = 0.33, // Añadir diferencia con ganancias cuando no hay horizonte
+    .kw_nadirpointing = 0.3, // Añadir diferencia con ganancias cuando no hay horizonte
     .kp_nadirpointing = 0.000025,
     .eps_nadirpointing = 0.01,
 
@@ -78,7 +80,11 @@ static AcConfig_t ac_config = {
     .eclipse_threshold = 0.2,
     .magnetic_field_min = 1e-6,
     .rmm_compensate = 1,
+
     .max_dipole = 0.2,
+    .mtq_matrix = { {1.0, 0.0, 0.0},
+                    {0.0, 1.0, 0.0},
+                    {0.0, 0.0, 1.0}},
 
     .S2BMatrix = {{1.0, 0.0, 0.0},
                   {0.0, 0.3746, -0.9271}, // basada en 68°

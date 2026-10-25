@@ -19,7 +19,7 @@ struct RmmEkf
    long initialized;
 };
 
-void RmmEkfInit(struct RmmEkf *ekf, const Ekf_config_t *ekf_config);
+void RmmEkfInit(struct RmmEkf *ekf);
 
 int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac);
 

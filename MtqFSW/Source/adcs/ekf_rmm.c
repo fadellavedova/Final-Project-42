@@ -7,16 +7,16 @@
 #define EKF_MEASUREMENT_SIZE 3
 
 void RmmEkfInit(
-    struct RmmEkf *ekf,
-    const Ekf_config_t *ekf_config)
+    struct RmmEkf *ekf)
 {
-   memcpy(ekf->x, ekf_config->initialState, sizeof(ekf->x));
-   memcpy(ekf->P, ekf_config->initialCovariance, sizeof(ekf->P));
-   memcpy(ekf->Q, ekf_config->processNoise, sizeof(ekf->Q));
-   memcpy(ekf->Qmin, ekf_config->minimumProcessNoise, sizeof(ekf->Qmin));
-   memcpy(ekf->R, ekf_config->measurementNoise, sizeof(ekf->R));
-   memcpy(ekf->Rmin, ekf_config->minimumMeasNoise, sizeof(ekf->Rmin));
-   ekf->alpha = ekf_config->alpha;
+   Ekf_config_t *config_ekf = GetEkfConfig();
+   memcpy(ekf->x, config_ekf->initialState, sizeof(ekf->x));
+   memcpy(ekf->P, config_ekf->initialCovariance, sizeof(ekf->P));
+   memcpy(ekf->Q, config_ekf->processNoise, sizeof(ekf->Q));
+   memcpy(ekf->Qmin, config_ekf->minimumProcessNoise, sizeof(ekf->Qmin));
+   memcpy(ekf->R, config_ekf->measurementNoise, sizeof(ekf->R));
+   memcpy(ekf->Rmin, config_ekf->minimumMeasNoise, sizeof(ekf->Rmin));
+   ekf->alpha = config_ekf->alpha;
    ekf->initialized = 1;
 }
 
@@ -222,7 +222,7 @@ int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
    {
       for (column = 0; column < 6; column++)
       {
-         //ekf->Q[row][column] = (1.0 - ekf->alpha) * ekf->Q[row][column] + ekf->alpha * (ekf->Qmin[row][column] + stateCorrection[row] * stateCorrection[column]);
+         ekf->Q[row][column] = (1.0 - ekf->alpha) * ekf->Q[row][column] + ekf->alpha * (ekf->Qmin[row][column] + stateCorrection[row] * stateCorrection[column]);
       
       }
    }
@@ -247,7 +247,7 @@ int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
    {
       for (column = 0; column < 3; column++)
       {
-         //ekf->R[row][column] = (1.0 - ekf->alpha) * ekf->R[row][column] + ekf->alpha * (ekf->Rmin[row][column] + correctedInnovation[row] * correctedInnovation[column] + correctedCovariance[row][column]);
+         ekf->R[row][column] = (1.0 - ekf->alpha) * ekf->R[row][column] + ekf->alpha * (ekf->Rmin[row][column] + correctedInnovation[row] * correctedInnovation[column] + correctedCovariance[row][column]);
       }
       
    }

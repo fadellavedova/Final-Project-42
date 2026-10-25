@@ -7,15 +7,16 @@
 #define EKF_MEASUREMENT_SIZE 3
 
 void RmmEkfInit(
-    struct RmmEkf *ekf,
-    const Ekf_config_t *ekf_config)
+    struct RmmEkf *ekf)
 {
-   memcpy(ekf->x, ekf_config->initialState, sizeof(ekf->x));
-   memcpy(ekf->P, ekf_config->initialCovariance, sizeof(ekf->P));
-   memcpy(ekf->Q, ekf_config->processNoise, sizeof(ekf->Q));
-   memcpy(ekf->Qmin, ekf_config->minimumProcessNoise, sizeof(ekf->Qmin));
-   memcpy(ekf->R, ekf_config->measurementNoise, sizeof(ekf->R));
-   ekf->alpha = ekf_config->alpha;
+   Ekf_config_t *config_ekf = GetEkfConfig();
+   memcpy(ekf->x, config_ekf->initialState, sizeof(ekf->x));
+   memcpy(ekf->P, config_ekf->initialCovariance, sizeof(ekf->P));
+   memcpy(ekf->Q, config_ekf->processNoise, sizeof(ekf->Q));
+   memcpy(ekf->Qmin, config_ekf->minimumProcessNoise, sizeof(ekf->Qmin));
+   memcpy(ekf->R, config_ekf->measurementNoise, sizeof(ekf->R));
+   memcpy(ekf->Rmin, config_ekf->minimumMeasNoise, sizeof(ekf->Rmin));
+   ekf->alpha = config_ekf->alpha;
    ekf->initialized = 1;
 }
 
@@ -124,9 +125,8 @@ int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
    Skew(angular_aux, angularRateSkew);
    Skew(angularMomentum, angularMomentumSkew);
    Skew(magneticField, magneticFieldSkew);
-   Matrix3Multiply(angularRateSkew, inertia, temporary3a);
    Matrix3Multiply(magneticFieldSkew, inertia, temporary3b);
-   Matrix3Multiply(temporary3b, magneticFieldSkew, temporary3a);
+   Matrix3Multiply(temporary3b, magneticFieldSkew, temporary3a); //cambie de temporary3a a temporary3b 
    for (row = 0; row < 3; row++)
    {
       for (column = 0; column < 3; column++)
@@ -220,6 +220,15 @@ int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
 
    for (row = 0; row < 6; row++)
    {
+      for (column = 0; column < 6; column++)
+      {
+         ekf->Q[row][column] = (1.0 - ekf->alpha) * ekf->Q[row][column] + ekf->alpha * (ekf->Qmin[row][column] + stateCorrection[row] * stateCorrection[column]);
+      
+      }
+   }
+
+   for (row = 0; row < 6; row++)
+   {
       covarianceFactor[row][row] = 1.0;
       for (column = 0; column < 3; column++)
       {
@@ -233,20 +242,14 @@ int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
    {
       correctedInnovation[row] = angularRateMeasurement[row] - ekf->x[row];
    }
-   for (row = 0; row < 6; row++)
+
+   for (row = 0; row < 3; row++)
    {
-      stateCorrection[row] = 0.0;
       for (column = 0; column < 3; column++)
       {
-         stateCorrection[row] += kalmanGain[row][column] * correctedInnovation[column];
+         ekf->R[row][column] = (1.0 - ekf->alpha) * ekf->R[row][column] + ekf->alpha * (ekf->Rmin[row][column] + correctedInnovation[row] * correctedInnovation[column] + correctedCovariance[row][column]);
       }
-   }
-   for (row = 0; row < 6; row++)
-   {
-      for (column = 0; column < 6; column++)
-      {
-         ekf->Q[row][column] = (1.0 - ekf->alpha) * ekf->Q[row][column] + ekf->alpha * (ekf->Qmin[row][column] + stateCorrection[row] * stateCorrection[column]);
-      }
+      
    }
 
    return 1;

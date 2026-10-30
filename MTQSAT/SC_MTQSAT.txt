@@ -28,8 +28,8 @@ NONE                          ! Shaker File Name
 1                             ! Number of Bodies
 ================================ Body 0 ================================
 1.3                           ! Mass
-0.0021  0.0018   0.002        ! Moments of Inertia (kg-m^2)
-0.0  0.0  0.0                 ! Products of Inertia (xy,xz,yz)
+0.0021  0.0018   0.0021        ! Moments of Inertia (kg-m^2)
+0.001  -0.001  0.0001          ! Products of Inertia (xy,xz,yz)
 0.0003  -0.0012  0.0002        ! Location of mass center, m
 0.0  0.0  0.0                 ! Constant Embedded Momentum (Nms)
 0.001  -0.001   0.001         ! Constant Embedded Magnetic Dipole (A-m^2)
@@ -119,7 +119,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 0.0  0.0  1.0                 ! Axis expressed in Body Frame
 200                           ! Max Rate, deg/sec
 2000.0                         ! Scale Factor Error, ppm
-1.0                           ! Quantization, arcsec
+3.6                           ! Quantization, arcsec
 0.03                          ! Angle Random Walk (deg/rt-hr)
 0.8  1.0                      ! Bias Stability (deg/hr) over timespan (hr)
 2.52                          ! Angle Noise, arcsec RMS

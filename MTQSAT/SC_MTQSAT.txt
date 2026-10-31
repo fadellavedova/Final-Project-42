@@ -154,7 +154,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 *********************** Coarse Sun Sensor *******************************
 6                             ! Number of Coarse Sun Sensors
 ============================== CSS 0 ====================================
-1.0                           ! Sample Time,sec
+0.2                           ! Sample Time,sec
 1.0  0.0  0.0                 ! Axis expressed in Body Frame
 90.0                          ! Half-cone Angle, deg
 1.0                           ! Scale Factor
@@ -162,7 +162,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 0                             ! Body
 0                             ! Node
 ============================== CSS 1 ====================================
-1.0                           ! Sample Time,sec
+0.2                           ! Sample Time,sec
 0.0  1.0  0.0                 ! Axis expressed in Body Frame
 90.0                          ! Half-cone Angle, deg
 1.0                           ! Scale Factor
@@ -170,7 +170,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 0                             ! Body
 0                             ! Node
 ============================== CSS 2 ====================================
-1.0                           ! Sample Time,sec
+0.2                           ! Sample Time,sec
 0.0 0.0  1.0                  ! Axis expressed in Body Frame
 90.0                          ! Half-cone Angle, deg
 1.0                           ! Scale Factor
@@ -178,7 +178,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 0                             ! Body
 0                             ! Node
 ============================== CSS 3 ====================================
-1.0                           ! Sample Time,sec
+0.2                           ! Sample Time,sec
 -1.0 0.0  0.0                 ! Axis expressed in Body Frame
 90.0                          ! Half-cone Angle, deg
 1.0                           ! Scale Factor
@@ -186,7 +186,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 0                             ! Body
 0                             ! Node
 ============================== CSS 4 ====================================
-1.0                           ! Sample Time,sec
+0.2                           ! Sample Time,sec
 0.0  -1.0 0.0                  ! Axis expressed in Body Frame
 90.0                          ! Half-cone Angle, deg
 1.0                           ! Scale Factor
@@ -194,7 +194,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 0                             ! Body
 0                             ! Node
 ============================== CSS 5 ====================================
-1.0                           ! Sample Time,sec
+0.2                           ! Sample Time,sec
 0.0  0.0 -1.0                 ! Axis expressed in Body Frame
 90.0                          ! Half-cone Angle, deg
 1.0                           ! Scale Factor

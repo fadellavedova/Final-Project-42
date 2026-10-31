@@ -116,7 +116,6 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 0                             ! Node
 ============================== Axis 2 ===================================
 0.2                           ! Sample Time,sec
-0.2                           ! Sample Time,sec
 0.0  0.0  1.0                 ! Axis expressed in Body Frame
 200                           ! Max Rate, deg/sec
 2000.0                         ! Scale Factor Error, ppm

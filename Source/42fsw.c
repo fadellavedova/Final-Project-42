@@ -1473,8 +1473,8 @@ void MtbProcessing2(struct AcType *AC)
 
 void MtqFSW(struct AcType *AC)
 {
-      GyroProcessing2(AC);
-      MagnetometerProcessing2(AC);
+      gyroProcessing(AC);
+      magProcessing(AC);
       cssProcessing(AC);
       esProcessing(AC);
 

@@ -108,6 +108,53 @@ void cssProcessing(struct AcType *AC)
    }
 }
 
+void magProcessing(struct AcType *AC) {
+
+   if (AC->Nmag != 3) {
+         printf("Wrong processing function, Nmag != 3.\n");
+         return;
+   }
+
+   struct AcMagnetometerType *M;
+   AcConfig_t *config = GetAcConfig();
+   double bvs[3];
+   double bvb[3];
+
+   for(int i = 0; i < AC->Nmag; i++) {
+      M = &AC->MAG[i];
+      bvs[i] = M->Field - config->mag_bias[i];
+   }
+   Matrix3Vector(config->mag2b_matrix, bvs, bvb);
+   for(int i = 0; i < 3; i++) {
+      AC->bvb[i] = bvb[i];
+   }
+   return;
+}
+
+void gyroProcessing(struct AcType *AC) {
+
+   if (AC->Ngyro != 3) {
+         printf("Wrong processing function, Ngyro != 3.\n");
+         return;
+   }
+
+   struct AcGyroType *G;
+   AcConfig_t *config = GetAcConfig();
+   double wsn[3];
+   double wbn[3];
+
+   for(int i = 0; i < AC->Nmag; i++) {
+      G = &AC->Gyro[i];
+      wsn[i] = G->Rate - config->gyro_bias[i];
+   }
+   Matrix3Vector(config->gyro2b_matrix, wsn, wbn);
+   for(int i = 0; i < 3; i++) {
+      AC->wbn[i] = wbn[i];
+   }
+   return;
+}
+
+
 void esProcessing(struct AcType *AC) // FUNCION: tiene que calcular el vecornadir a partir de los datos Roll y Pitch YA CALCULADOS en el modelo de sensor
 {
    AcConfig_t *config = GetAcConfig();
@@ -138,7 +185,7 @@ void esProcessing(struct AcType *AC) // FUNCION: tiene que calcular el vecornadi
    }
    if (Nvalid > 0) {
       AC->EarthValid = TRUE;
-      Matrix3Vector(config->S2BMatrix, nvs, nvb);
+      Matrix3Vector(config->ehs2b_matrix, nvs, nvb);
       for(int i = 0; i < 3; i++) {
          AC->nvb[i] = nvb[i]/Nvalid;
       }
@@ -147,8 +194,9 @@ void esProcessing(struct AcType *AC) // FUNCION: tiene que calcular el vecornadi
 
 void mtbProcessing(struct AcType *AC)
 {
-      if(AC->Nmtb > 3) {
-         printf("Wrong processing function, Mmtb > 3.\n");
+      if(AC->Nmtb != 3) {
+         printf("Wrong processing function, Nmtb != 3.\n");
+         return;
       }
 
       AcConfig_t *config = GetAcConfig();
@@ -157,7 +205,7 @@ void mtbProcessing(struct AcType *AC)
       double m[3];
       double max_m = 0.0;
 
-      Matrix3Vector(config->mtq_matrix, AC->Mcmd, m); //TF a los ejes de los mtq
+      Matrix3Vector(config->b2mtq_matrix, AC->Mcmd, m); //TF a los ejes de los mtq
 
       for (size_t i = 0; i < 3; i++) {
          if (fabs(m[i]) > max_m) {
@@ -174,6 +222,9 @@ void mtbProcessing(struct AcType *AC)
          M = &AC->MTB[Im];
          M->Mcmd = m[Im];
       }
+
+      // Renovamos el Mcmd del AC
+      Matrix3Vector(config->mtq2b_matrix, m, AC->Mcmd);
 
 }
 

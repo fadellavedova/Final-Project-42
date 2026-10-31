@@ -39,10 +39,19 @@ typedef struct AcConfig
     int rmm_compensate;
 
     float max_dipole;
-    double mtq_matrix[3][3];
+    double b2mtq_matrix[3][3];
+    double mtq2b_matrix[3][3];
 
     // EHS
-    double S2BMatrix[3][3];
+    double ehs2b_matrix[3][3];
+
+    //Mag
+    double mag_bias[3];
+    double mag2b_matrix[3][3];
+
+    //Gyro
+    double gyro_bias[3];
+    double gyro2b_matrix[3][3];
 
 } AcConfig_t;
 
@@ -70,9 +79,9 @@ static AcConfig_t ac_config = {
     .kp_nadirpointing = 0.000025,
     .eps_nadirpointing = 0.01,
 
-    .kw_nadirpointing_nohorizon= 0.33,
+    .kw_nadirpointing_nohorizon= 0.3,
     .kp_nadirpointing_nohorizon= 0.000025,
-    .eps_nadirpointing_nohorizon= 0.01,
+    .eps_nadirpointing_nohorizon= 0.03,
 
     .nadir_pointing_vector = {0.0, 0.0, 1.0}, // +Z to nadir
     .sun_pointing_vector = {0.0, 0.0, -1.0},    // -Z to sun
@@ -82,14 +91,28 @@ static AcConfig_t ac_config = {
     .rmm_compensate = 1,
 
     .max_dipole = 0.2,
-    .mtq_matrix = { {1.0, 0.0, 0.0},
+    .b2mtq_matrix = {{1.0, 0.0, 0.0},
+                    {0.0, 1.0, 0.0},
+                    {0.0, 0.0, 1.0}},
+    .mtq2b_matrix = {{1.0, 0.0, 0.0},
                     {0.0, 1.0, 0.0},
                     {0.0, 0.0, 1.0}},
 
-    .S2BMatrix = {{1.0, 0.0, 0.0},
+    .ehs2b_matrix = {{1.0, 0.0, 0.0},
                   {0.0, 0.3746, -0.9271}, // basada en 68°
-                  {0.0, 0.9271, 0.3746}}
+                  {0.0, 0.9271, 0.3746}},
+
+    .mag_bias = {{0.0}, {0.0}, {0.0}},
+    .mag2b_matrix = {{1.0, 0.0, 0.0},
+                    {0.0, 1.0, 0.0},
+                    {0.0, 0.0, 1.0}},
+
+    .gyro_bias = {{0.0}, {0.0}, {0.0}},
+    .gyro2b_matrix = {{1.0, 0.0, 0.0},
+                    {0.0, 1.0, 0.0},
+                    {0.0, 0.0, 1.0}},
 };
+
 
 typedef struct Ekf_config
 {

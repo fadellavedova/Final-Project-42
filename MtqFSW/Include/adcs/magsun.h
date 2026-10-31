@@ -11,5 +11,8 @@ int adcsUBA(struct AcType *AC);
 void cssProcessing(struct AcType *AC);
 void esProcessing(struct AcType *AC);
 void mtbProcessing(struct AcType *AC);
+void magProcessing(struct AcType *AC);
+void gyroProcessing(struct AcType *AC);
+
 
 #endif

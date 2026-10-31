@@ -608,8 +608,6 @@ void EhsModel(struct SCType *S)
       AC = &S->AC;
 
       for(ie = 0; ie < S->Nehs; ie++) {
-         // Obtenemos la medicion de la iteracion previa (se simula delay de tiempo de muestreo)
-
          // Modelo
          EHS = &S->EHS[ie];
          EHS->SampleCounter++;

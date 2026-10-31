@@ -3,8 +3,8 @@
 
 typedef struct AcConfig
 {
-    double detumble_angular_velocity_threshold_low;
-    double detumble_angular_velocity_threshold_high;
+    double detumble_w_thld_low;
+    double detumble_w_thld_high;
 
     //Physics constants
     double J[3][3];
@@ -49,8 +49,8 @@ typedef struct AcConfig
 // Poner todas las configs del sistema de control (parametros, thresholds, etc.) capaz se puede hacer otro tipo de config para el EKF(?)
 
 static AcConfig_t ac_config = {
-    .detumble_angular_velocity_threshold_low = 0.005,
-    .detumble_angular_velocity_threshold_high = 0.1,
+    .detumble_w_thld_low = 0.005,
+    .detumble_w_thld_high = 0.1,
 
     .kw_detumb = 0.3,
     .eps_detumb = 0.01,

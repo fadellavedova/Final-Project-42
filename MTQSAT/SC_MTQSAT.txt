@@ -128,7 +128,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 *************************** Magnetometer ********************************
 3                             ! Number of Magnetometer Axes
 ============================== Axis 0 ===================================
-1.0                           ! Sample Time,sec
+0.2                           ! Sample Time,sec
 1.0  0.0  0.0                 ! Axis expressed in Body Frame
 800.0E-6                      ! Saturation, Tesla
 0.0                           ! Scale Factor Error, ppm
@@ -136,7 +136,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 40.0E-9                       ! Noise, Tesla RMS
 0                             ! Node
 ============================== Axis 1 ===================================
-1.0                           ! Sample Time,sec
+0.2                           ! Sample Time,sec
 0.0  1.0  0.0                 ! Axis expressed in Body Frame
 800.0E-6                      ! Saturation, Tesla
 0.0                           ! Scale Factor Error, ppm
@@ -144,7 +144,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 40.0E-9                       ! Noise, Tesla RMS
 0                             ! Node
 ============================== Axis 2 ===================================
-1.0                           ! Sample Time,sec
+0.2                           ! Sample Time,sec
 0.0  0.0  1.0                 ! Axis expressed in Body Frame
 800.0E-6                      ! Saturation, Tesla
 0.0                           ! Scale Factor Error, ppm

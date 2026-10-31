@@ -143,7 +143,7 @@ void gyroProcessing(struct AcType *AC) {
    double wsn[3];
    double wbn[3];
 
-   for(int i = 0; i < AC->Nmag; i++) {
+   for(int i = 0; i < AC->Ngyro; i++) {
       G = &AC->Gyro[i];
       wsn[i] = G->Rate - config->gyro_bias[i];
    }
@@ -224,7 +224,7 @@ void mtbProcessing(struct AcType *AC)
       }
 
       // Renovamos el Mcmd del AC
-      Matrix3Vector(config->mtq2b_matrix, m, AC->Mcmd);
+      //Matrix3Vector(config->mtq2b_matrix, m, AC->Mcmd);
 
 }
 

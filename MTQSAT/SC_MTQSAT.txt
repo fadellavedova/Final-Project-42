@@ -28,9 +28,9 @@ NONE                          ! Shaker File Name
 1                             ! Number of Bodies
 ================================ Body 0 ================================
 1.3                           ! Mass
-0.0021  0.0018   0.0021        ! Moments of Inertia (kg-m^2)
-0.001  -0.001  0.0001          ! Products of Inertia (xy,xz,yz)
-0.0003  -0.0012  0.0002        ! Location of mass center, m
+0.0021  0.0018   0.002        ! Moments of Inertia (kg-m^2)
+0.0001  -0.0001  0.0001                 ! Products of Inertia (xy,xz,yz)
+0.0003  -0.0012  0.0002       ! Location of mass center, m
 0.0  0.0  0.0                 ! Constant Embedded Momentum (Nms)
 0.001  -0.001   0.001         ! Constant Embedded Magnetic Dipole (A-m^2)
 ubasat.obj                    ! Geometry Input File Name
@@ -93,7 +93,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 ******************************* Gyro ************************************
 3                             ! Number of Gyro Axes
 ============================== Axis 0 ===================================
-0.2                        ! Sample Time,sec
+0.2                           ! Sample Time,sec
 1.0  0.0  0.0                 ! Axis expressed in Body Frame
 200                           ! Max Rate, deg/sec
 2000.0                        ! Scale Factor Error, ppm
@@ -104,7 +104,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 360                           ! Initial Bias (deg/hr)
 0                             ! Node
 ============================== Axis 1 ===================================
-0.2                          ! Sample Time,sec
+0.2                           ! Sample Time,sec
 0.0  1.0  0.0                 ! Axis expressed in Body Frame
 200                           ! Max Rate, deg/sec
 2000.0                         ! Scale Factor Error, ppm
@@ -115,6 +115,7 @@ PROPORTIONAL                  ! Mode (PULSED or PROPORTIONAL)
 360                           ! Initial Bias (deg/hr)
 0                             ! Node
 ============================== Axis 2 ===================================
+0.2                           ! Sample Time,sec
 0.2                           ! Sample Time,sec
 0.0  0.0  1.0                 ! Axis expressed in Body Frame
 200                           ! Max Rate, deg/sec

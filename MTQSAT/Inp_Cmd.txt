@@ -1,5 +1,5 @@
 <<<<<<<<<<<<<<<<<  42:  Command Script File  >>>>>>>>>>>>>>>>>
-46800 SC[0] AC Mode = NADIR_POINTING
+28200 SC[0] AC Mode = NADIR_POINTING
 EOF
 
 ##############################################################

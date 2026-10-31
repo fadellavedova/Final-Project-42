@@ -1,6 +1,9 @@
 """Compare simulator truth with FSW telemetry from FswComparison.csv.
 
-Usage: python MTQSAT/plot_fsw_comparison.py [CSV_OR_DIRECTORY] [--save DIR]
+Usage: python MTQSAT/plot_fsw_comparison.py [CSV_OR_DIRECTORY] [--save DIR] [--all] [--show]
+By default only the figures for the thesis report are written (PNG and PDF) to
+MTQSAT/figuras, in Spanish and without titles (the caption goes in LaTeX).
+--all writes every figure, in the original English form, with titles.
 Dependencies: numpy, matplotlib. Run the rebuilt simulator to generate the CSV.
 """
 
@@ -11,6 +14,58 @@ import re
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+# (figure name, output file stem, report section), in the order they appear in the report.
+REPORT_FIGURES = (
+    ("Angular velocity", "velocidad_angular", "Detumbling y apuntamiento al Sol"),
+    ("Attitude quaternion", "cuaternion_actitud", "Detumbling y apuntamiento al Sol"),
+    ("Torque rod dipoles", "dipolos_magnetorquers", "Detumbling y apuntamiento al Sol"),
+    ("Estimation and pointing errors", "errores_apuntamiento", "Detumbling y apuntamiento al Sol"),
+    ("EKF angular rate", "ekf_velocidad_angular", "Estimación del momento magnético residual"),
+    ("Residual magnetic dipole", "ekf_dipolo_residual", "Estimación del momento magnético residual"),
+    ("EKF uncertainty", "ekf_incertidumbre", "Estimación del momento magnético residual"),
+    ("Nadir error and horizon sensor validity", "error_nadir_horizonte", "Apuntamiento al nadir"),
+    ("Sun vector in body frame", "vector_sol_cuerpo", "Validación de sensores"),
+    ("Magnetic field in body frame", "campo_magnetico_cuerpo", "Validación de sensores"),
+    ("Eclipse and Sun availability", "eclipse_disponibilidad_sol", "Validación de sensores"),
+)
+
+SPANISH = {
+    "Simulation time [min]": "Tiempo de simulación [min]",
+    "Simulation truth": "Simulación (verdad)",
+    "CSS-derived estimate": "Estimación con CSS",
+    "Processed gyros": "Giróscopos procesados",
+    "FSW attitude": "Actitud del FSW",
+    "Processed magnetometers": "Magnetómetros procesados",
+    "EHS-derived estimate": "Estimación con sensor de horizonte",
+    "EKF estimate": "Estimación del EKF",
+    "Unit vector": "Vector unitario",
+    "Dimensionless": "Adimensional",
+    "microtesla": "Campo [µT]",
+    "A m^2": "Dipolo [A·m²]",
+    "degrees": "Error [°]",
+    "Applied dipole": "Dipolo aplicado",
+    "FSW rod command": "Comando del FSW",
+    "True eclipse": "Eclipse real",
+    "FSW no valid Sun (not geometric eclipse)": "FSW sin Sol válido",
+    "FSW SunValid": "FSW SunValid",
+    "Sun estimation error": "Error de estimación del Sol",
+    "True pointing error": "Error de apuntamiento real",
+    "Quaternion separation (q and -q equivalent)": "Separación entre cuaterniones",
+    "Nadir knowledge error (FSW vs truth)": "Error de estimación del nadir",
+    "FSW horizon valid": "Horizonte válido (FSW)",
+    "Angular-rate sigma [rad/s]": "σ velocidad angular [rad/s]",
+    "Dipole sigma [A m^2]": "σ dipolo [A·m²]",
+}
+language = "en"
+
+
+def tr(text):
+    return SPANISH.get(text, text) if language == "es" else text
+
+
+def slug(name):
+    return re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
 
 
 def load_telemetry(path):
@@ -57,7 +112,7 @@ def angle_degrees(first, second, valid):
     return result
 
 
-def build_figures(data):
+def build_figures(data, titles=True):
     """Use identical scales and recorded time for every left/right comparison."""
     time = data["time"] / 60
     eclipse = data["truth_eclipse"].astype(bool)
@@ -66,13 +121,16 @@ def build_figures(data):
     def finish(figure, axes, name):
         for axis in np.asarray(axes).flat:
             axis.grid(True, alpha=0.25)
-            axis.set_xlabel("Simulation time [min]")
+            axis.set_xlabel(tr("Simulation time [min]"))
+            axis.set_ylabel(tr(axis.get_ylabel()))
+            axis.set_title(tr(axis.get_title()))
             axis.fill_between(time, 0, 1, where=eclipse, step="post",
                               transform=axis.get_xaxis_transform(), color="0.5", alpha=0.14)
             handles, labels = axis.get_legend_handles_labels()
             if handles:
-                axis.legend(fontsize="small", loc="best")
-        figure.suptitle(f"{name} | gray shading: true eclipse")
+                axis.legend(handles, [tr(label) for label in labels], fontsize="small", loc="best")
+        if titles:
+            figure.suptitle(f"{name} | gray shading: true eclipse")
         figures.append((name, figure))
 
     def pair(name, left, right, units, labels, right_title="FSW", scale=1):
@@ -219,22 +277,45 @@ def build_figures(data):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("input", nargs="?", type=Path, default=Path(__file__).parent)
-    parser.add_argument("--save", type=Path, help="Save PNG figures to this directory")
-    parser.add_argument("--no-show", action="store_true", help="Do not open interactive windows")
+    parser.add_argument("--save", type=Path, default=Path(__file__).parent / "figuras",
+                        help="Output directory (default: MTQSAT/figuras)")
+    parser.add_argument("--all", action="store_true", help="Write every figure instead of only the report ones")
+    parser.add_argument("--formats", nargs="+", default=["png", "pdf"], choices=["png", "pdf", "svg"],
+                        help="Output formats (default: png pdf)")
+    parser.add_argument("--show", action="store_true", help="Also open interactive windows")
+    parser.add_argument("--no-show", action="store_true", help=argparse.SUPPRESS)
     args = parser.parse_args()
+    global language
+    language = "en" if args.all else "es"
     path = args.input / "FswComparison.csv" if args.input.is_dir() else args.input
     try:
         data = load_telemetry(path)
-        figures = build_figures(data)
+        figures = build_figures(data, titles=args.all)
     except (OSError, ValueError, KeyError) as error:
         parser.exit(1, f"Cannot plot {path}: {error}\nRebuild and run 42 to generate FswComparison.csv.\n")
-    if args.save:
-        args.save.mkdir(parents=True, exist_ok=True)
-        for name, figure in figures:
-            filename = re.sub(r"[^a-z0-9]+", "_", name.lower()).strip("_")
-            figure.savefig(args.save / f"{filename}.png", dpi=150)
-        print(f"Saved {len(figures)} figures to {args.save.resolve()}")
-    if not args.no_show:
+
+    by_name = dict(figures)
+    if args.all:
+        selected = [(slug(name), figure, None) for name, figure in figures]
+    else:
+        selected = [(stem, by_name[name], section) for name, stem, section in REPORT_FIGURES if name in by_name]
+        for name, _, _ in REPORT_FIGURES:
+            if name not in by_name:
+                print(f"Sin generar (faltan columnas en el CSV): {name}")
+
+    args.save.mkdir(parents=True, exist_ok=True)
+    for stem, figure, _ in selected:
+        for extension in args.formats:
+            figure.savefig(args.save / f"{stem}.{extension}", dpi=200)
+    print(f"{len(selected)} figuras guardadas en {args.save.resolve()}")
+    if not args.all:
+        current = None
+        for stem, _, section in selected:
+            if section != current:
+                current = section
+                print(f"\n{section}")
+            print(f"  {stem}.{args.formats[0]}")
+    if args.show:
         plt.show()
     else:
         plt.close("all")

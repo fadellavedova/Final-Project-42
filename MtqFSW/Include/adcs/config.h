@@ -77,11 +77,11 @@ static AcConfig_t ac_config = {
 
     .kw_nadirpointing = 0.3, // Añadir diferencia con ganancias cuando no hay horizonte
     .kp_nadirpointing = 0.000025,
-    .eps_nadirpointing = 0.01,
+    .eps_nadirpointing = 0.02,
 
-    .kw_nadirpointing_nohorizon= 0.3,
-    .kp_nadirpointing_nohorizon= 0.000025,
-    .eps_nadirpointing_nohorizon= 0.03,
+    .kw_nadirpointing_nohorizon= 0.4,
+    .kp_nadirpointing_nohorizon= 0.0000025,
+    .eps_nadirpointing_nohorizon= 0.01,
 
     .nadir_pointing_vector = {0.0, 0.0, 1.0}, // +Z to nadir
     .sun_pointing_vector = {0.0, 0.0, -1.0},    // -Z to sun

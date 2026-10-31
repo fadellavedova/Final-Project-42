@@ -224,7 +224,7 @@ void mtbProcessing(struct AcType *AC)
       }
 
       // Renovamos el Mcmd del AC
-      //Matrix3Vector(config->mtq2b_matrix, m, AC->Mcmd);
+      Matrix3Vector(config->mtq2b_matrix, m, AC->Mcmd);
 
 }
 

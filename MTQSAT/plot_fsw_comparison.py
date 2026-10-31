@@ -26,6 +26,7 @@ REPORT_FIGURES = (
     ("EKF uncertainty", "ekf_incertidumbre", "Estimación del momento magnético residual"),
     ("Nadir error and horizon sensor validity", "error_nadir_horizonte", "Apuntamiento al nadir"),
     ("Sun vector in body frame", "vector_sol_cuerpo", "Validación de sensores"),
+    ("Nadir vector in body frame", "vector_nadir_cuerpo", "Validación de sensores"),
     ("Magnetic field in body frame", "campo_magnetico_cuerpo", "Validación de sensores"),
     ("Eclipse and Sun availability", "eclipse_disponibilidad_sol", "Validación de sensores"),
 )

@@ -51,12 +51,23 @@ SPANISH = {
     "FSW no valid Sun (not geometric eclipse)": "FSW sin Sol válido",
     "FSW SunValid": "FSW SunValid",
     "Sun estimation error": "Error de estimación del Sol",
+    "Sun pointing error": "Error de apuntamiento al Sol",
     "True pointing error": "Error de apuntamiento real",
+    "Nadir estimation error": "Error de estimación del nadir",
+    "Nadir pointing error": "Error de apuntamiento al nadir",
+    "Nadir command": "Comando a nadir",
     "Quaternion separation (q and -q equivalent)": "Separación entre cuaterniones",
     "Nadir knowledge error (FSW vs truth)": "Error de estimación del nadir",
     "FSW horizon valid": "Horizonte válido (FSW)",
     "Angular-rate sigma [rad/s]": "σ velocidad angular [rad/s]",
     "Dipole sigma [A m^2]": "σ dipolo [A·m²]",
+    "True value": "Valor verdadero",
+    "Estimation error": "Error de estimación",
+    "Error norm": "Norma del error",
+    "Relative error": "Error relativo",
+    "Relative error [%]": "Error relativo [%]",
+    "10% threshold": "Umbral del 10 %",
+    "±3σ band": "Banda ±3σ",
 }
 language = "en"
 
@@ -200,12 +211,28 @@ def build_figures(data, titles=True):
 
     truth_sun, fsw_sun = vector(data, "truth_svb"), vector(data, "fsw_svb")
     if truth_sun is not None and fsw_sun is not None:
-        figure, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 6), layout="constrained")
+        truth_nadir, fsw_nadir = vector(data, "truth_nadir_b"), vector(data, "fsw_nadir_b")
+        rows = 3 if truth_nadir is not None else 2
+        figure, axes = plt.subplots(rows, 1, sharex=True, figsize=(12, 3 * rows), layout="constrained")
         axes[0].plot(time, angle_degrees(truth_sun, fsw_sun, ~eclipse & data["fsw_sun_valid"].astype(bool)), label="Sun estimation error")
         target = vector(data, "sun_target")
         if target is not None:
-            axes[0].plot(time, angle_degrees(truth_sun, target, ~eclipse), label="True pointing error")
+            axes[0].plot(time, angle_degrees(truth_sun, target, ~eclipse), label="Sun pointing error")
         axes[0].set_ylabel("degrees")
+        if truth_nadir is not None:
+            always = np.ones(len(time), dtype=bool)
+            if fsw_nadir is not None:
+                horizon = data.get("fsw_horizon_valid", np.ones(len(time))).astype(bool)
+                axes[1].plot(time, angle_degrees(truth_nadir, fsw_nadir, horizon), label="Nadir estimation error")
+            nadir_target = np.tile((0.0, 0.0, 1.0), (len(time), 1))
+            axes[1].plot(time, angle_degrees(truth_nadir, nadir_target, always), label="Nadir pointing error")
+            axes[1].set_ylabel("degrees")
+        mode = data.get("fsw_mode")
+        if mode is not None and np.any(mode == 3):
+            nadir_start = time[np.argmax(mode == 3)]
+            for axis in axes:
+                axis.axvline(nadir_start, color="k", linestyle="--", linewidth=1, alpha=0.6,
+                             label="Nadir command" if axis is axes[0] else None)
         truth_q, fsw_q = vector(data, "truth_qbn", 4), vector(data, "fsw_qbn", 4)
         if truth_q is not None and fsw_q is not None:
             denominator = np.linalg.norm(truth_q, axis=1) * np.linalg.norm(fsw_q, axis=1)
@@ -213,8 +240,8 @@ def build_figures(data, titles=True):
             error = np.full(len(time), np.nan)
             cosine = np.abs(np.sum(truth_q[valid] * fsw_q[valid], axis=1) / denominator[valid])
             error[valid] = 2 * np.degrees(np.arccos(np.clip(cosine, 0, 1)))
-            axes[1].plot(time, error, label="Quaternion separation (q and -q equivalent)")
-        axes[1].set_ylabel("degrees")
+            axes[-1].plot(time, error, label="Quaternion separation (q and -q equivalent)")
+        axes[-1].set_ylabel("degrees")
         finish(figure, axes, "Estimation and pointing errors")
 
     if "nadir_err_deg" in data:
@@ -231,12 +258,50 @@ def build_figures(data, titles=True):
     if state is not None:
         valid = data["ekf_valid"].astype(bool)
         state = np.where(valid[:, None], state, np.nan)
-        pair("EKF angular rate", vector(data, "truth_wbn"), state[:, :3], "rad/s", ("X", "Y", "Z"), "EKF estimate")
-        pair("Residual magnetic dipole", vector(data, "truth_residual_dipole"), state[:, 3:], "A m^2", ("X", "Y", "Z"), "EKF estimate")
         variance = vector(data, "ekf_variance", 6)
-        if variance is not None:
+        sigma = np.sqrt(np.where(valid[:, None] & (variance >= 0), variance, np.nan)) if variance is not None else None
+
+        truth_w = vector(data, "truth_wbn")
+        if truth_w is not None:
             figure, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 6), layout="constrained")
-            sigma = np.sqrt(np.where(valid[:, None] & (variance >= 0), variance, np.nan))
+            rate_error = state[:, :3] - truth_w
+            for component, label in enumerate(("X", "Y", "Z")):
+                axes[0].plot(time, rate_error[:, component], label=label, linewidth=1)
+            settled = np.abs(rate_error[len(time) // 10:])
+            if np.any(np.isfinite(settled)):
+                limit = 5 * np.nanpercentile(settled, 99)
+                axes[0].set_ylim(-limit, limit)
+            axes[0].set_ylabel("rad/s")
+            axes[1].plot(time, np.linalg.norm(rate_error, axis=1), label="Error norm", linewidth=1)
+            if sigma is not None:
+                axes[1].plot(time, 3 * np.linalg.norm(sigma[:, :3], axis=1), "k--", linewidth=1, label="±3σ band")
+            axes[1].set_yscale("log")
+            axes[1].set_ylabel("rad/s")
+            finish(figure, axes, "EKF angular rate")
+
+        truth_m = vector(data, "truth_residual_dipole")
+        if truth_m is not None:
+            figure, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 6), layout="constrained")
+            for component, label in enumerate(("X", "Y", "Z")):
+                line, = axes[0].plot(time, state[:, component + 3], label=label, linewidth=1)
+                axes[0].plot(time, truth_m[:, component], color=line.get_color(),
+                             linestyle="--", linewidth=1,
+                             label="True value" if component == 0 else None)
+            limit = 3 * np.nanmax(np.abs(truth_m))
+            if np.isfinite(limit) and limit > 0:
+                axes[0].set_ylim(-limit, limit)
+            axes[0].set_ylabel("A m^2")
+            truth_norm = np.linalg.norm(truth_m, axis=1)
+            relative = np.where(truth_norm > 1e-12,
+                                np.linalg.norm(state[:, 3:] - truth_m, axis=1) / truth_norm * 100, np.nan)
+            axes[1].plot(time, relative, label="Relative error", linewidth=1)
+            axes[1].axhline(10, color="k", linestyle=":", linewidth=1, label="10% threshold")
+            axes[1].set_yscale("log")
+            axes[1].set_ylabel("Relative error [%]")
+            finish(figure, axes, "Residual magnetic dipole")
+
+        if sigma is not None:
+            figure, axes = plt.subplots(2, 1, sharex=True, figsize=(12, 6), layout="constrained")
             for component, label in enumerate(("X", "Y", "Z")):
                 axes[0].plot(time, sigma[:, component], label=label)
                 axes[1].plot(time, sigma[:, component + 3], label=label)

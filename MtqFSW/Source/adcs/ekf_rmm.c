@@ -247,7 +247,7 @@ int RmmEkfStep(struct AcType *AC, AcConfig_t *config_ac)
    {
       for (column = 0; column < 3; column++)
       {
-         ekf->R[row][column] = (1.0 - ekf->alpha) * ekf->R[row][column] + ekf->alpha * (ekf->Rmin[row][column] + correctedInnovation[row] * correctedInnovation[column] + correctedCovariance[row][column]);
+         ekf->R[row][column] = (1.0 - ekf->alpha) * ekf->R[row][column] + ekf->alpha * (ekf->Rmin[row][column] + correctedInnovation[row] * correctedInnovation[column] + predictedCovariance[row][column]);
       }
       
    }
